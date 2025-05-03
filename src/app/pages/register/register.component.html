@@ -1,7 +1,7 @@
 <section
-  class="register container mt-4 d-flex flex-column align-items-center justify-content-center"
+  class="register container my-4 d-flex flex-column align-items-center justify-content-center"
 >
-  <div class="mb-3 text-center">
+  <div class="mb-2 text-center">
     <h2>Tolab<span>Test</span></h2>
     <p class="text-muted"></p>
   </div>
@@ -36,10 +36,7 @@
         } @if (getName?.hasError('minlength')) {
         <span class="text-danger">Username must be at least 3 characters</span>
         } @if (getName?.hasError('pattern')) {
-        <span class="text-danger">Username must be only letters</span> } } @else
-        {
-        <span class="text-danger"></span>
-        }
+        <span class="text-danger">Username must be only letters</span> } }
       </div>
 
       <!-- Email -->
@@ -55,10 +52,9 @@
         />
         @if (getEmail?.touched) { @if (getEmail?.hasError('required')) {
         <span class="text-danger">Email is required</span>
-        } @if (getEmail?.hasError('email')) {
-        <span class="text-danger">Email is invalid</span> } } @else {
-        <span class="text-danger"></span>
-        }
+        } @if (getEmail?.hasError('pattern')) {
+          <span class="text-danger">Email address must be valid.</span> } 
+      } 
       </div>
 
       <!-- Password -->
@@ -76,9 +72,7 @@
         <span class="text-danger">Password is required</span>
         } @if (getPassword?.hasError('minlength')) {
         <span class="text-danger">Password must be at least 6 characters</span>
-        } } @else {
-        <span class="text-danger"></span>
-        }
+        } }
       </div>
 
       <!-- Confirm Password -->
@@ -97,9 +91,7 @@
         <span class="text-danger">Confirm Password is required</span>
         } } @if( getConfirmPassword?.value!== '' && getPassword?.value !==
         getConfirmPassword?.value) {
-        <span class="text-danger">Passwords do not match</span> } @else {
-        <span class="text-danger"></span>
-        }
+        <span class="text-danger">Passwords do not match</span> }
       </div>
 
       <!-- Role Selection -->
@@ -115,7 +107,7 @@
             value="student"
             checked
           />
-          <label class="form-check-label" for="student">Student</label>
+          <label class="form-check-label text-muted" for="student">Student</label>
         </div>
         <div class="form-check form-check-inline">
           <input
@@ -126,7 +118,7 @@
             id="teacher"
             value="teacher"
           />
-          <label class="form-check-label" for="teacher">Teacher</label>
+          <label class="form-check-label text-muted" for="teacher">Teacher</label>
         </div>
         @if (getRole?.touched) { @if (getRole?.hasError('required')) {
         <span class="text-danger">Role is required</span>
@@ -138,8 +130,8 @@
       <!-- Submit -->
       <button type="submit" class="btn w-100">Register</button>
     </form>
-    <p class="text-center mt-3">
-      Already have an account? <a class="fw-bold" href="#">sign in</a>
+    <p class="mt-3 text-muted">
+      Already have an account? <a class="text-main" href="#">Sign In</a>
     </p>
   </div>
 </section>
