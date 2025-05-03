@@ -1,22 +1,42 @@
-<div class="container d-flex justify-content-center align-items-center my-5">
-    <div class="text-center d-flex flex-column">
-        <h3 class="text-center fw-bold text-main">TolabExam</h3>
-        <p>Your complete online examination platform</p>
-  <div class="card p-4 border-0 shadow-sm" style="width: 28rem;">
+  <section class="login container d-flex justify-content-center align-items-center my-4">
+    <div class="d-flex flex-column">
+        <h2 class="text-center text-main">Tolab<span>Test</span></h2>
+  <div class="mt-2 login__container card px-3 px-md-5 py-4 border-0 rounded-5 shadow-sm" style="width: 28rem;">
     <h4 class="text-main">Sign In</h4>
-    <p class="text-muted">Enter your credentials to access your account</p>
-    <form>
+    <p class="text-muted">Enter your credentials to access tolabtest.</p>
+    <form 
+     [formGroup]="loginForm"
+    (submit)="login()"
+    class="login__form"
+    >
+
         <div class="mb-3">
           <label for="email" class="fw-medium form-label">Email</label>
-          <input type="email" class="form-control" placeholder="Enter your email" id="email" aria-describedby="emailHelp">
+          <div class="input-with-icon"> 
+            <input formControlName="email" type="email" class="form-control" placeholder="Enter your email" id="email" aria-describedby="emailHelp">
+            <i class="bi bi-envelope-fill"></i>
+          </div>
+          @if (getEmail?.touched) { @if (getEmail?.hasError('required')) {
+            <span class="text-danger my-2">Email is required</span>
+            } @if (getEmail?.hasError('pattern')) {
+              <span class="text-danger">Email address must be valid.</span> } 
+          } 
         </div>
         <div class="mb-3">
           <label for="password" class="fw-medium  form-label">Password</label>
-          <input type="password" class="form-control" id="password" placeholder="Enter your password">
+          <div class="input-with-icon">
+            <input formControlName="password" type="password" class="form-control" id="password" placeholder="Enter your password">
+          <i class="bi bi-lock-fill"></i>
+          </div>
+          @if (getPassword?.touched) { @if (getPassword?.hasError('required')) {
+            <span class="text-danger">Password is required</span>
+            } @if (getPassword?.hasError('minlength')) {
+            <span class="text-danger">Password must be at least 6 characters</span>
+            } }
         </div>
         <button type="submit" class="btn btn-main mb-3 w-100">Sign In</button>
-        <p class="text-muted">Don't have an account? <a href="" class="text-main text-decoration-none">Register here</a></p>
+        <p class="text-muted">Don't have an account? <a (click)="navigateToSignUp()" class="text-main pointer text-decoration-none">Create account</a></p>
       </form>
   </div>
 </div>
-</div>
+</section>

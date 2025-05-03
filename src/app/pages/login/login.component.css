@@ -1,7 +1,63 @@
-.btn-main{
-    background-color: var(--main-color);
-    color: #fff;
-}
 .text-main{
    color: var(--main-color);
+}
+h2 {
+  color: var(--main-color);
+  font-weight: bold;
+}
+h2 span {
+  color: var(--secondary-color);
+}
+h4 {
+  color: var(--main-color);
+}
+
+/* Inputs */
+label {
+  font-weight: 500;
+}
+input:focus {
+  border-color: none !important;
+  outline: 2px solid var(--main-color) !important;
+  box-shadow: none !important;
+}
+
+/* Button */
+.btn-main{
+  background-color: var(--main-color);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  transition: 0.3s ease;
+}
+.btn:hover {
+  background-color: var(--secondary-color);
+  color: white;
+}
+p a {
+  color: var(--main-color);
+  text-decoration: none;
+  transition: 0.3s ease;
+}
+p a:hover {
+  color: var(--secondary-color);
+}
+.form-check-input:checked {
+  background-color: var(--main-color);
+  border-color: var(--main-color);
+}
+.input-with-icon {
+  position: relative;
+  input {
+    padding-left: 30px; 
+  }
+
+  .bi {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d; 
+  }
 }
