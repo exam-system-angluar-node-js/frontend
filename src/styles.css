@@ -1,1 +1,16 @@
 /* You can add global styles to this file, and also import other style files */
+@import url("https://fonts.googleapis.com/css2?family=Cal+Sans&family=Duru+Sans&family=Jost:ital,wght@0,100..900;1,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+:root {
+  --main-color: #4f4be6;
+  --secondary-color: #a78bfa;
+}
+html {
+  font-size: 16px;
+}
+body {
+  font-family: "Montserrat", sans-serif !important;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background: linear-gradient(50deg, #fff, #ede9fe);
+}
