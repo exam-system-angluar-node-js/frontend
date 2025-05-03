@@ -12,7 +12,10 @@
 
         <div class="mb-3">
           <label for="email" class="fw-medium form-label">Email</label>
-          <input formControlName="email" type="email" class="form-control" placeholder="Enter your email" id="email" aria-describedby="emailHelp">
+          <div class="input-with-icon"> 
+            <input formControlName="email" type="email" class="form-control" placeholder="Enter your email" id="email" aria-describedby="emailHelp">
+            <i class="bi bi-envelope-fill"></i>
+          </div>
           @if (getEmail?.touched) { @if (getEmail?.hasError('required')) {
             <span class="text-danger my-2">Email is required</span>
             } @if (getEmail?.hasError('pattern')) {
@@ -21,7 +24,10 @@
         </div>
         <div class="mb-3">
           <label for="password" class="fw-medium  form-label">Password</label>
-          <input formControlName="password" type="password" class="form-control" id="password" placeholder="Enter your password">
+          <div class="input-with-icon">
+            <input formControlName="password" type="password" class="form-control" id="password" placeholder="Enter your password">
+          <i class="bi bi-lock-fill"></i>
+          </div>
           @if (getPassword?.touched) { @if (getPassword?.hasError('required')) {
             <span class="text-danger">Password is required</span>
             } @if (getPassword?.hasError('minlength')) {

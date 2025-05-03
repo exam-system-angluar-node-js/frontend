@@ -44,3 +44,17 @@ p a:hover {
   background-color: var(--main-color);
   border-color: var(--main-color);
 }
+.input-with-icon {
+  position: relative;
+  input {
+    padding-left: 30px; 
+  }
+
+  .bi {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d; 
+  }
+}
