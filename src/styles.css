@@ -14,4 +14,6 @@ body {
   box-sizing: border-box;
   background: linear-gradient(50deg, #fff, #ede9fe);
 }
-
+.pointer{
+  cursor: pointer;
+}

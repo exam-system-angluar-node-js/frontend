@@ -6,6 +6,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-register',
@@ -14,6 +15,7 @@ import {
   styleUrl: './register.component.css',
 })
 export class RegisterComponent {
+  constructor(private router:Router){}
   registerForm = new FormGroup({
     username: new FormControl('', [
       Validators.required,
@@ -46,6 +48,9 @@ export class RegisterComponent {
   }
   get getRole() {
     return this.registerForm.get('role');
+  }
+  navigateToLogin(){
+    this.router.navigate(['/login']);
   }
   register() {
     if (this.registerForm.status === 'VALID') {

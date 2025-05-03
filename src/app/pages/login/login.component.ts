@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -9,6 +10,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
   styleUrl: './login.component.css'
 })
 export class LoginComponent {
+  constructor(private router:Router){}
   loginForm = new FormGroup({
     email: new FormControl('', [Validators.required,
       Validators.pattern(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/)]),
@@ -25,6 +27,9 @@ export class LoginComponent {
     return this.loginForm.get('password');
   }
 
+  navigateToSignUp(){
+    this.router.navigate(['/signup']);
+  }
   login() {
     if (this.loginForm.status === 'VALID') {
         console.log(this.loginForm.value);
