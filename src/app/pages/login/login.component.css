@@ -1,0 +1,7 @@
+.btn-main{
+    background-color: var(--main-color);
+    color: #fff;
+}
+.text-main{
+   color: var(--main-color);
+}
