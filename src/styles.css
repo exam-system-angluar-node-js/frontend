@@ -1,17 +1,21 @@
 /* You can add global styles to this file, and also import other style files */
-@import url("https://fonts.googleapis.com/css2?family=Cal+Sans&family=Duru+Sans&family=Jost:ital,wght@0,100..900;1,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 @import "tailwindcss";
+@import "flowbite/src/themes/default";
+@import url("https://fonts.googleapis.com/css2?family=Cal+Sans&family=Duru+Sans&family=Jost:ital,wght@0,100..900;1,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 @import "flowbite/src/themes/default";
 @plugin "flowbite/plugin";
 @source "../node_modules/flowbite";
+
 
 :root {
   --main-color: #4f4be6;
   --secondary-color: #7e79fd;
 }
+
 html {
   font-size: 16px;
 }
+
 html,
 body {
   height: 100%;
