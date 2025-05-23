@@ -1,103 +1,409 @@
-<section class="register container my-4 d-flex flex-column align-items-center justify-content-center">
-  <div class="mb-2 text-center">
-    <h2>Tolab<span>Test</span></h2>
-    <p class="text-muted"></p>
-  </div>
-
-  <div class="register__container w-100 px-3 px-md-5 py-4 mb-3 bg-white rounded-5 shadow-sm" style="max-width: 500px">
-    <div class="mb-3 text-center">
-      <h4>Create account</h4>
-      <p class="text-muted"></p>
+<section
+  class="register mx-auto py-13 flex min-h-screen justify-center items-center"
+>
+  <div class="flex flex-col items-center transform transition-all duration-300">
+    <div class="relative mb-8">
+      <h2
+        class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"
+      >
+        Tolab<span class="font-black">Test</span>
+      </h2>
     </div>
 
-    <form [formGroup]="registerForm" (submit)="register()" class="register__form">
-      <!-- Username -->
-      <div class="mb-3 w-100">
-        <label for="username" class="form-label">Username</label>
-        <div class="input-with-icon">
-          <input type="text" class="form-control" name="username" formControlName="username" id="username"
-            placeholder="Enter your name" />
-          <i class="bi bi-person"></i>
-        </div>
-
-        @if (getName?.touched) { @if (getName?.hasError('required')) {
-        <span class="text-danger">Username is required</span>
-        } @if (getName?.hasError('minlength')) {
-        <span class="text-danger">Username must be at least 3 characters</span>
-        } @if (getName?.hasError('pattern')) {
-        <span class="text-danger">Username must be only letters</span> } }
+    <div
+      class="bg-white/90 backdrop-blur-lg p-12 rounded-2xl shadow-2xl ring-1 ring-black/5 transform hover:shadow-3xl transition-all duration-500 w-fit sm:w-[30rem] md:w-[35rem] lg:w-[40rem]"
+    >
+      <div class="space-y-1 mb-8 text-center">
+        <h4 class="text-3xl font-bold text-gray-900">Join Our Community</h4>
+        <p class="text-gray-500 font-medium">
+          Create your account in 30 seconds
+        </p>
       </div>
 
-      <!-- Email -->
-      <div class="mb-3 w-100">
-        <label for="email" class="form-label">Email</label>
-        <div class="input-with-icon">
-          <input type="email" formControlName="email" name="email" class="form-control" id="email"
-            placeholder="Enter your email" />
-          <i class="bi bi-envelope"></i>
-        </div>
-        @if (getEmail?.touched) { @if (getEmail?.hasError('required')) {
-        <span class="text-danger">Email is required</span>
-        } @if (getEmail?.hasError('pattern')) {
-        <span class="text-danger">Email address must be valid.</span> }
-        }
-      </div>
-      <!-- Password -->
-      <div class="mb-3 w-100">
-        <label for="password" class="form-label">Password</label>
-        <div class="input-with-icon">
-          <input type="password" formControlName="password" name="password" class="form-control" id="password"
-            placeholder="Enter your password" />
-          <i class="bi bi-lock"></i>
-        </div>
-        @if (getPassword?.touched) { @if (getPassword?.hasError('required')) {
-        <span class="text-danger">Password is required</span>
-        } @if (getPassword?.hasError('minlength')) {
-        <span class="text-danger">Password must be at least 6 characters</span>
-        } }
-      </div>
+      <form [formGroup]="registerForm" (submit)="register()" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Username -->
+          <div>
+            <label
+              for="username"
+              class="block mb-3 text-sm font-semibold text-gray-700"
+              >Full Name</label
+            >
+            <div class="relative group">
+              <div
+                class="absolute inset-y-0 left-0 flex items-center pl-4 transition-all duration-300 group-focus-within:-translate-y-1"
+              >
+                <svg
+                  class="w-6 h-6 text-gray-400 group-focus-within:text-blue-600 transition-colors"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+              </div>
+              <input
+                type="text"
+                formControlName="username"
+                id="username"
+                class="w-full pl-14 pr-4 py-3.5 text-lg border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all placeholder-gray-400"
+                placeholder="John Doe"
+              />
+            </div>
+            @if (getName?.touched) {
+            <div class="mt-2 flex items-center space-x-2">
+              @if (getName?.hasError('required')) {
+              <svg
+                class="w-5 h-5 text-red-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="text-sm text-red-500 font-medium"
+                >Username is required</span
+              >
+              } @if (getName?.hasError('minlength')) {
+              <svg
+                class="w-5 h-5 text-red-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="text-sm text-red-500 font-medium"
+                >Minimum 3 characters required</span
+              >
+              } @if (getName?.hasError('pattern')) {
+              <svg
+                class="w-5 h-5 text-red-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="text-sm text-red-500 font-medium"
+                >Only letters allowed</span
+              >
+              }
+            </div>
+            }
+          </div>
 
-      <!-- Confirm Password -->
-      <div class="mb-3 w-100">
-        <label for="confirmPassword" class="form-label">Confirm Password</label>
-        <div class="input-with-icon">
-          <input type="password" formControlName="confirmPassword" name="confirmPassword" class="form-control"
-            id="confirmPassword" placeholder="Confirm your password" />
-          <i class="bi bi-lock"></i>
+          <!-- Email -->
+          <div>
+            <label
+              for="email"
+              class="block mb-3 text-sm font-semibold text-gray-700"
+              >Email</label
+            >
+            <div class="relative group">
+              <div
+                class="absolute inset-y-0 left-0 flex items-center pl-4 transition-all duration-300 group-focus-within:-translate-y-1"
+              >
+                <svg
+                  class="w-6 h-6 text-gray-400 group-focus-within:text-blue-600 transition-colors"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+                  />
+                </svg>
+              </div>
+              <input
+                type="email"
+                formControlName="email"
+                id="email"
+                class="w-full pl-14 pr-4 py-3.5 text-lg border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all placeholder-gray-400"
+                placeholder="name@company.com"
+              />
+            </div>
+            @if (getEmail?.touched) {
+            <div class="mt-2 flex items-center space-x-2">
+              @if (getEmail?.hasError('required')) {
+              <svg
+                class="w-5 h-5 text-red-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="text-sm text-red-500 font-medium"
+                >Email is required</span
+              >
+              } @if (getEmail?.hasError('pattern')) {
+              <svg
+                class="w-5 h-5 text-red-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="text-sm text-red-500 font-medium"
+                >Enter a valid email</span
+              >
+              }
+            </div>
+            }
+          </div>
         </div>
-        @if (getConfirmPassword?.touched) { @if
-        (getConfirmPassword?.hasError('required')) {
-        <span class="text-danger">Confirm Password is required</span>
-        } } @if( getConfirmPassword?.value!== '' && getPassword?.value !==
-        getConfirmPassword?.value) {
-        <span class="text-danger">Passwords do not match</span> }
-      </div>
+        <!-- Password -->
+        <div>
+          <label
+            for="password"
+            class="block mb-3 text-sm font-semibold text-gray-700"
+            >Password</label
+          >
+          <div class="relative group">
+            <div
+              class="absolute inset-y-0 left-0 flex items-center pl-4 transition-all duration-300 group-focus-within:-translate-y-1"
+            >
+              <svg
+                class="w-6 h-6 text-gray-400 group-focus-within:text-blue-600 transition-colors"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
+            </div>
+            <input
+              type="password"
+              formControlName="password"
+              id="password"
+              class="w-full pl-14 pr-4 py-3.5 text-lg border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all placeholder-gray-400"
+              placeholder="••••••••"
+            />
+          </div>
+          @if (getPassword?.touched) {
+          <div class="mt-2 flex items-center space-x-2">
+            @if (getPassword?.hasError('required')) {
+            <svg
+              class="w-5 h-5 text-red-500"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span class="text-sm text-red-500 font-medium"
+              >Password is required</span
+            >
+            } @if (getPassword?.hasError('minlength')) {
+            <svg
+              class="w-5 h-5 text-red-500"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span class="text-sm text-red-500 font-medium"
+              >Minimum 6 characters</span
+            >
+            }
+          </div>
+          }
+        </div>
 
-      <!-- Role Selection -->
-      <div class="mb-4">
-        <label class="form-label d-block mb-2">Select your role:</label>
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" name="role" formControlName="role" id="student" value="student"
-            checked />
-          <label class="form-check-label text-muted" for="student">Student</label>
+        <!-- Confirm Password -->
+        <div>
+          <label
+            for="confirmPassword"
+            class="block mb-3 text-sm font-semibold text-gray-700"
+            >Confirm Password</label
+          >
+          <div class="relative group">
+            <div
+              class="absolute inset-y-0 left-0 flex items-center pl-4 transition-all duration-300 group-focus-within:-translate-y-1"
+            >
+              <svg
+                class="w-6 h-6 text-gray-400 group-focus-within:text-blue-600 transition-colors"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <input
+              type="password"
+              formControlName="confirmPassword"
+              id="confirmPassword"
+              class="w-full pl-14 pr-4 py-3.5 text-lg border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all placeholder-gray-400"
+              placeholder="••••••••"
+            />
+          </div>
+          @if (getConfirmPassword?.touched || (getConfirmPassword?.value &&
+          getPassword?.value !== getConfirmPassword?.value)) {
+          <div class="mt-2 flex items-center space-x-2">
+            @if (getConfirmPassword?.hasError('required')) {
+            <svg
+              class="w-5 h-5 text-red-500"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span class="text-sm text-red-500 font-medium"
+              >Confirm password required</span
+            >
+            } @if (getPassword?.value !== getConfirmPassword?.value) {
+            <svg
+              class="w-5 h-5 text-red-500"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span class="text-sm text-red-500 font-medium"
+              >Passwords don't match</span
+            >
+            }
+          </div>
+          }
         </div>
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" formControlName="role" name="role" id="teacher"
-            value="teacher" />
-          <label class="form-check-label text-muted" for="teacher">Teacher</label>
-        </div>
-        @if (getRole?.touched) { @if (getRole?.hasError('required')) {
-        <span class="text-danger">Role is required</span>
-        } } @else {
-        <span class="text-danger"></span>
-        }
-      </div>
 
-      <!-- Submit -->
-      <button type="submit" class="btn w-100">Register</button>
-    </form>
-    <p class="mt-3 text-muted">
-      Already have an account? <a class="text-main pointer" (click)="navigateToLogin()">Sign In</a>
-    </p>
+        <!-- Role Selection -->
+        <div class="space-y-3">
+          <label class="block text-sm font-semibold text-gray-700"
+            >Select Role</label
+          >
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label
+              class="flex items-center p-4 border-2 border-gray-200 rounded-xl has-[:checked]:border-blue-500 has-[:checked]:ring-4 has-[:checked]:ring-blue-100 cursor-pointer transition-all"
+            >
+              <input
+                type="radio"
+                name="role"
+                value="student"
+                formControlName="role"
+                class="h-5 w-5 text-blue-600 focus:ring-blue-500"
+                checked
+              />
+              <div class="ms-3">
+                <span class="block text-lg font-medium text-gray-900"
+                  >Student</span
+                >
+                <span class="block text-sm text-gray-500"
+                  >Access courses and exams</span
+                >
+              </div>
+            </label>
+
+            <label
+              class="flex items-center p-4 border-2 border-gray-200 rounded-xl has-[:checked]:border-purple-500 has-[:checked]:ring-4 has-[:checked]:ring-purple-100 cursor-pointer transition-all"
+            >
+              <input
+                type="radio"
+                name="role"
+                value="teacher"
+                formControlName="role"
+                class="h-5 w-5 text-purple-600 focus:ring-purple-500"
+              />
+              <div class="ms-3">
+                <span class="block text-lg font-medium text-gray-900"
+                  >Teacher</span
+                >
+                <span class="block text-sm text-gray-500"
+                  >Create and manage content</span
+                >
+              </div>
+            </label>
+          </div>
+          @if (getRole?.touched && getRole?.hasError('required')) {
+          <div class="mt-2 flex items-center space-x-2">
+            <svg
+              class="w-5 h-5 text-red-500"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span class="text-sm text-red-500 font-medium"
+              >Role selection is required</span
+            >
+          </div>
+          }
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          class="w-full py-4 px-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold text-lg rounded-xl transition-all duration-300 transform hover:scale-[1.01] active:scale-95 shadow-lg hover:shadow-xl cursor-pointer"
+        >
+          Create Account
+        </button>
+
+        <!-- Login Link -->
+        <p class="text-center text-gray-600 font-medium">
+          Already registered?
+          <a
+            (click)="navigateToLogin()"
+            class="text-blue-600 hover:text-purple-600 cursor-pointer font-semibold underline-offset-4 hover:underline transition-all"
+          >
+            Sign in here
+          </a>
+        </p>
+      </form>
+    </div>
   </div>
 </section>
