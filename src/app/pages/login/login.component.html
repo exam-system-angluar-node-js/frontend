@@ -1,42 +1,114 @@
-  <section class="login container d-flex justify-content-center align-items-center my-4">
-    <div class="d-flex flex-column">
-        <h2 class="text-center text-main">Tolab<span>Test</span></h2>
-  <div class="mt-2 login__container card px-3 px-md-5 py-4 border-0 rounded-5 shadow-sm" style="width: 28rem;">
-    <h4 class="text-main">Sign In</h4>
-    <p class="text-muted">Enter your credentials to access tolabtest.</p>
-    <form 
-     [formGroup]="loginForm"
-    (submit)="login()"
-    class="login__form"
-    >
+<section class="login mx-auto flex min-h-screen justify-center items-center bg-gradient-to-br">
+  <div class="flex flex-col items-center transform transition-all duration-300">
+    <!-- Logo with modern ring effect -->
+    <div class="relative mb-8">
+      <h2 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+        Tolab<span class="font-black">Test</span>
+      </h2>
+    </div>
 
-        <div class="mb-3">
-          <label for="email" class="fw-medium form-label">Email</label>
-          <div class="input-with-icon"> 
-            <input formControlName="email" type="email" class="form-control" placeholder="Enter your email" id="email" aria-describedby="emailHelp">
-            <i class="bi bi-envelope-fill"></i>
+    <!-- Card with glassmorphism effect -->
+    <div
+      class="bg-white/90 backdrop-blur-lg p-12 rounded-2xl shadow-2xl ring-1 ring-black/5 transform hover:shadow-3xl transition-all duration-500 w-fit sm:w-[25rem] md:w-[30rem] lg:w-[35rem]">
+      <div class="space-y-1 mb-8">
+        <h4 class="text-3xl font-bold text-gray-900">Welcome Back</h4>
+        <p class="text-gray-500 font-medium">
+          Enter your credentials to continue
+        </p>
+      </div>
+
+      <form [formGroup]="loginForm" (submit)="login()" class="space-y-8">
+        <!-- Email Input with animated icon -->
+        <div>
+          <label for="email" class="block mb-3 text-sm font-semibold text-gray-700">Email</label>
+          <div class="relative group">
+            <div
+              class="absolute inset-y-0 left-0 flex items-center pl-4 transition-all duration-300 group-focus-within:-translate-y-1">
+              <svg class="w-6 h-6 text-gray-400 group-focus-within:text-blue-600 transition-colors" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+              </svg>
+            </div>
+            <input formControlName="email" type="email" id="email"
+              class="w-full pl-14 pr-4 py-3.5 text-lg border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all placeholder-gray-400"
+              placeholder="name@company.com" />
           </div>
-          @if (getEmail?.touched) { @if (getEmail?.hasError('required')) {
-            <span class="text-danger my-2">Email is required</span>
+          <!-- Validation Messages -->
+          @if (getEmail?.touched) {
+          <div class="mt-2 flex items-center space-x-2">
+
+            @if (getEmail?.hasError('required')) {
+            <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clip-rule="evenodd" />
+            </svg>
+            <span class="text-sm text-red-500 font-medium">Email is required</span>
             } @if (getEmail?.hasError('pattern')) {
-              <span class="text-danger">Email address must be valid.</span> } 
-          } 
-        </div>
-        <div class="mb-3">
-          <label for="password" class="fw-medium  form-label">Password</label>
-          <div class="input-with-icon">
-            <input formControlName="password" type="password" class="form-control" id="password" placeholder="Enter your password">
-          <i class="bi bi-lock-fill"></i>
+            <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clip-rule="evenodd" />
+            </svg>
+            <span class="text-sm text-red-500 font-medium">Enter a valid email address</span>
+            }
           </div>
-          @if (getPassword?.touched) { @if (getPassword?.hasError('required')) {
-            <span class="text-danger">Password is required</span>
-            } @if (getPassword?.hasError('minlength')) {
-            <span class="text-danger">Password must be at least 6 characters</span>
-            } }
+          }
         </div>
-        <button type="submit" class="btn btn-main mb-3 w-100">Sign In</button>
-        <p class="text-muted">Don't have an account? <a (click)="navigateToSignUp()" class="text-main pointer text-decoration-none">Create account</a></p>
+
+        <!-- Password Input with toggle -->
+        <div>
+          <label for="password" class="block mb-3 text-sm font-semibold text-gray-700">Password</label>
+          <div class="relative group">
+            <div
+              class="absolute inset-y-0 left-0 flex items-center pl-4 transition-all duration-300 group-focus-within:-translate-y-1">
+              <svg class="w-6 h-6 text-gray-400 group-focus-within:text-blue-600 transition-colors" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <input formControlName="password" type="password" id="password"
+              class="w-full pl-14 pr-4 py-3.5 text-lg border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all placeholder-gray-400"
+              placeholder="••••••••" />
+          </div>
+          @if (getPassword?.touched) {
+          <div class="mt-2 flex items-center space-x-2">
+            @if (getPassword?.hasError('required')) {
+            <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clip-rule="evenodd" />
+            </svg>
+            <span class="text-sm text-red-500 font-medium">Password is required</span>
+            } @if (getPassword?.hasError('minlength')) {
+            <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clip-rule="evenodd" />
+            </svg>
+            <span class="text-sm text-red-500 font-medium">Minimum 6 characters required</span>
+            }
+          </div>
+          }
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit"
+          class="w-full py-4 px-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold text-lg rounded-xl transition-all duration-300 transform hover:scale-[1.01] active:scale-95 shadow-lg hover:shadow-xl cursor-pointer">
+          Continue to Dashboard
+        </button>
+
+        <!-- Signup Link -->
+        <p class="text-center text-gray-600 font-medium">
+          New here?
+          <a (click)="navigateToSignUp()"
+            class="text-blue-600 hover:text-purple-600 cursor-pointer font-semibold underline-offset-4 hover:underline transition-all">
+            Create an account
+          </a>
+        </p>
       </form>
+    </div>
   </div>
-</div>
 </section>
