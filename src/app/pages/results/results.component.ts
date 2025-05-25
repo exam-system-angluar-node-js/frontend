@@ -1,8 +1,11 @@
 import { Component } from '@angular/core';
+import { SmcardComponent } from "../../shared/components/smcard/smcard.component";
+import { BasechartComponent } from "../../components/basechart/basechart.component";
+import { LgcardComponent } from "../../shared/components/lgcard/lgcard.component";
 
 @Component({
   selector: 'app-results',
-  imports: [],
+  imports: [SmcardComponent, BasechartComponent, LgcardComponent],
   templateUrl: './results.component.html',
   styleUrl: './results.component.css'
 })
