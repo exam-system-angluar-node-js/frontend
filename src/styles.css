@@ -34,3 +34,7 @@ body {
 .pointer {
   cursor: pointer;
 }
+[drawer-backdrop] {
+ background: color-mix(in oklab, var(--color-zinc-900) 80%, transparent) !important;
+ pointer-events: none !important;
+}

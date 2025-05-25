@@ -1,0 +1,48 @@
+<div class=" min-h-screen  dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900">  
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 ">
+      <!-- Header and Add Exam Button -->
+      <div class="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
+        <h1 class="text-3xl font-semibold text-zinc-900 dark:text-white tracking-tight">
+          Manage Exams
+        </h1>
+        <button
+          class="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 cursor-pointer text-white font-semibold rounded-lg shadow transition-all duration-200"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Add New Exam
+        </button>
+      </div>
+  
+      <!-- Search and Filter Bar -->
+      <div class="flex flex-col sm:flex-row items-center gap-4 mb-8">
+        <input
+          type="text"
+          placeholder="Search exams..."
+          class="w-full sm:w-80 px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+        />
+        <select
+          class="w-full sm:w-56 px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+        >
+          <option value="">All Subjects</option>
+          <option value="math">Mathematics</option>
+          <option value="science">Science</option>
+          <option value="history">History</option>
+        </select>
+      </div>
+  
+      <!-- Cards Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 justify-items-center sm:justify-between">
+        @for (exam of exams; track exam.id) {
+          <app-card
+            [title]="exam.title"
+            [description]="exam.description"
+            [image]="exam.image"
+            [questionsCount]="exam.questionsCount"
+            [manage]="true"
+          ></app-card>
+        }
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,13 @@
+<app-navbar (toggleState)="onToggleState($event)" />
+<app-sidebar/>
+<div class="min-h-screen dark:bg-zinc-900 pt-4">
+    <div class="container mx-auto px-4 my-20 ">
+        @if (togglerState) {
+             <div class="sm:ml-70 md:ml-64 lg:ml-34">
+            <router-outlet></router-outlet>
+             </div>
+        }@else {
+             <router-outlet></router-outlet>
+        }
+    </div>
+</div>

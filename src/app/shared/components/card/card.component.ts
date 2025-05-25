@@ -1,8 +1,9 @@
 import { Component, Input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-card',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './card.component.html',
   styleUrl: './card.component.css',
 })
@@ -11,8 +12,9 @@ export class CardComponent {
   @Input() title: string = '';
   @Input() description: string = '';
   @Input() questionsCount: number = 0;
-  @Input() usage: string = 'default';
-  get isManageMode(): boolean {
-    return this.usage.toLowerCase() === 'manage';
-  }
+  @Input() manage: boolean = false;
 }
+
+
+
+
