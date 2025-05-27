@@ -1,40 +1,30 @@
-<div class="flex flex-col sm:flex-row items-center justify-between mb-4 gap-4">
-  <h1 class="text-3xl font-semibold text-zinc-900 dark:text-white tracking-tight">
-    Tolab Results
-  </h1>
-</div>
+
 <div class="max-w-7xl mx-auto px-4 pb-8 sm:px-6">
-  <div class="flex flex-col md:flex-row gap-4 justify-between mb-8">
-    <div class="w-full lg:w-64">
-      <select id="subjects"
-        class="w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-200 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 p-3 transition-all">
-        <option value="" selected>All Subjects</option>
-        <option value="math">Mathematics</option>
-        <option value="physics">Physics</option>
-        <option value="chemistry">Chemistry</option>
-        <option value="biology">Biology</option>
-        <option value="english">English</option>
-      </select>
-    </div>
-    <div class="w-full lg:w-96">
-      <label for="student-search" class="sr-only">Search students</label>
-      <div class="relative">
-        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-          <svg class="w-4 h-4 text-zinc-500 dark:text-zinc-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-            fill="none" viewBox="0 0 20 20">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
-          </svg>
-        </div>
-        <input type="text" id="student-search"
-          class="block w-full p-3 pl-10 text-sm text-zinc-900 border border-zinc-300 rounded-lg bg-white dark:bg-zinc-800 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white focus:ring-purple-500 focus:border-purple-500"
-          placeholder="Search by student name..." />
-      </div>
-    </div>
+  <div class="flex flex-col sm:flex-row items-center justify-between mb-4 gap-4">
+    <h1 class="text-3xl font-semibold text-zinc-900 dark:text-white tracking-tight">
+      Tolab Results
+    </h1>
+  </div>
+  <div class="flex flex-col sm:flex-row justify-between gap-4 mb-8">
+    <input 
+      (input)="handleSearch($event)" 
+      type="text" 
+      placeholder="Search by student name or exam title..."
+      class="w-full sm:w-80 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-600 focus:outline-none transition" 
+    />
+    <select
+      (change)="handleStatusChange($event)"
+      class="w-full sm:w-56 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-600 focus:outline-none transition"
+    >
+      <option value="all">All Status</option>
+      <option value="passed">Passed</option>
+      <option value="failed">Failed</option>
+      <option value="pending">Pending</option>
+    </select>
   </div>
   <div class="bg-white dark:bg-zinc-800 rounded-2xl p-8 shadow-lg mb-8">
-    <div class="flex items-center justify-between mb-6">
-      <h3 class="text-2xl font-bold text-zinc-700 dark:text-zinc-200">
+    <div class="flex items-center flex-col md:flex-row justify-between mb-6">
+      <h3 class="text-2xl mb-5 md:mb-0 font-bold text-zinc-700 dark:text-zinc-200">
         All Results
       </h3>
       <a
@@ -60,7 +50,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let result of results"
+          <tr *ngFor="let result of filteredResults"
             class="text-base border-b border-zinc-100 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all duration-200">
             <td class="py-4 text-zinc-700 dark:text-zinc-200 font-medium">
               {{ result.user.name }}
@@ -114,7 +104,7 @@
       </table>
     </div>
     <div class="md:hidden space-y-4">
-      <div *ngFor="let result of results"
+      <div *ngFor="let result of filteredResults"
         class="bg-white dark:bg-zinc-800 rounded-xl p-4 border border-zinc-200 dark:border-zinc-700 shadow-sm">
         <div class="flex justify-between items-start mb-3">
           <div>

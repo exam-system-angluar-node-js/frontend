@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CardComponent } from "../../shared/components/card/card.component";
+import { DataService } from '../../services/data.service';
 
 @Component({
   selector: 'app-exams',
@@ -21,11 +22,15 @@ export class ExamsComponent implements OnInit {
     { id: 6, title: 'Python', description: 'Python is a programming language that lets you work quickly and integrate systems more effectively.', questionsCount: 15, category: 'backend', creationDateInput: new Date(2025, 4, 12) },
     { id: 7, title: 'MongoDB', description: 'MongoDB is a source-available cross-platform document-oriented database program. Classified as a NoSQL database program, MongoDB uses JSON-like documents with optional schemas.', questionsCount: 15, category: 'database', creationDateInput: new Date(2025, 2, 14) },
     { id: 8, title: 'postgresql', description: 'PostgreSQL is a free and open-source relational database management system emphasizing extensibility and SQL compliance.', questionsCount: 15, category: 'database', creationDateInput: new Date(2025, 3, 11) },
-    { id: 9, title: 'mysql', description: 'MySQL is an open-source relational database management system.', questionsCount: 15, category: 'database' },
+    { id: 9, title: 'mysql', description: 'MySQL is an open-source relational database management system.', questionsCount: 15, category: 'database', creationDateInput: new Date(2025, 1, 1) },
   ];
+
+  constructor(private dataService: DataService) {}
 
   ngOnInit(): void {
     this.filteredExams = this.exams;
+    // Initialize DataService with exams data
+    this.dataService.changeData(this.exams);
   }
 
   handleSearch(event: Event): void {
