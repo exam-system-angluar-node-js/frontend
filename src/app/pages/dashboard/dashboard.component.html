@@ -1,10 +1,11 @@
-<div class="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-8 mb-8 shadow-lg ">
+<div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-8 mb-8 shadow-lg ">
       <h1 class="text-4xl mb-2 font-bold text-white">
-        Welcome back, Ahmed
+        Welcome back, Mohamed
       </h1>
       <p class="text-purple-100">Here's what's happening with your exams today.</p>
-    </div>
-<div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+    </div>
+<div class="grid grid-cols-1 sm:justify-center md:grid-cols-3 gap-4">
  <app-smcard
   [title]="'Available Exams'"
   [count]="'12'"
@@ -22,14 +23,13 @@
 </app-smcard>
 <app-basechart/>
 </div>
+</div>
 
 
 
-
-<!-- 
-    <app-piechart
+    <!-- <app-piechart
   [type]="'doughnut'"
   [data]="[30, 40, 40]"
   [labels]="['Red', 'Blue', 'Yellow']"
   [colors]="['#FF6384', '#36A2EB', '#FFCE56']">
-</app-piechart> -->
+</app-piechart>  -->

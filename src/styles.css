@@ -1,7 +1,6 @@
 /* You can add global styles to this file, and also import other style files */
 @import "tailwindcss";
 @import "flowbite/src/themes/default";
-@import url("https://fonts.googleapis.com/css2?family=Cal+Sans&family=Duru+Sans&family=Jost:ital,wght@0,100..900;1,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 @import "flowbite/src/themes/default";
 @plugin "flowbite/plugin";
 @source "../node_modules/flowbite";
@@ -26,15 +25,10 @@ body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  background: linear-gradient(50deg, #fff, #ede9fe);
   min-height: 100vh;
   background-attachment: fixed;
 }
 
 .pointer {
   cursor: pointer;
-}
-[drawer-backdrop] {
- background: color-mix(in oklab, var(--color-zinc-900) 80%, transparent) !important;
- pointer-events: none !important;
 }
