@@ -1,9 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { CardComponent } from '../../shared/components/card/card.component';
-import { DataService } from '../../services/data.service';
-import { Subscription } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DataService } from '../../services/data.service';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 
 interface Question {
   id: number;
@@ -12,34 +12,22 @@ interface Question {
   correctAnswer: number;
 }
 
-interface Exam {
-  id: number;
-  title: string;
-  description: string;
-  questionsCount: number;
-  category: string;
-  creationDateInput: Date | string;
-}
-
 @Component({
-  selector: 'app-exam',
-  imports: [CardComponent, FormsModule],
-  templateUrl: './exam.component.html',
-  styleUrl: './exam.component.css',
+  selector: 'app-exam-start',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './exam-start.component.html',
+  styleUrl: './exam-start.component.css'
 })
-export class ExamComponent implements OnInit, OnDestroy {
-  exams: Exam[] = [];
-  filterdExam: Exam | null = null;
-  dataSubscription!: Subscription;
-  path!: string | null;
-  isLoading = true;
-  error = false;
-
-  // Exam state
+export class ExamStartComponent implements OnInit, OnDestroy {
+  examId: string | null = null;
   currentQuestionIndex = 0;
   timeLeft = 45 * 60; // 45 minutes in seconds
   timerInterval: any;
   answers: number[] = [];
+  isLoading = true;
+  error = false;
+  exam: any = null;
 
   // Sample questions (replace with actual questions from your backend)
   questions: Question[] = [
@@ -49,27 +37,43 @@ export class ExamComponent implements OnInit, OnDestroy {
       choices: ['var x = 5;', 'variable x = 5;', 'v x = 5;', 'let x = 5;'],
       correctAnswer: 3,
     },
-    // Add more questions here
+    {
+      id: 2,
+      text: 'Which of the following is not a JavaScript data type?',
+      choices: ['String', 'Boolean', 'Float', 'Object'],
+      correctAnswer: 2,
+    },
+    {
+      id: 3,
+      text: 'What does HTML stand for?',
+      choices: [
+        'Hyper Text Markup Language',
+        'High Tech Modern Language',
+        'Hyper Transfer Markup Language',
+        'Hyper Text Modern Language'
+      ],
+      correctAnswer: 0,
+    }
   ];
 
+  private dataSubscription!: Subscription;
+
   constructor(
-    private dataService: DataService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private dataService: DataService
   ) {}
 
   ngOnInit(): void {
-    this.path = this.route.snapshot.paramMap.get('id');
+    this.examId = this.route.snapshot.paramMap.get('id');
     this.dataSubscription = this.dataService.currentData.subscribe({
-      next: (exams) => {
-        if (Array.isArray(exams) && exams.length > 0) {
-          this.exams = exams;
-          const foundExam = this.exams.find((exam) => exam.id === Number(this.path));
-          this.filterdExam = foundExam || null;
+      next: (data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          this.exam = data[0];
           this.isLoading = false;
-          if (!this.filterdExam) {
-            this.error = true;
-          }
+          this.startTimer();
+          // Initialize answers array
+          this.answers = new Array(this.questions.length).fill(-1);
         } else {
           this.error = true;
           this.isLoading = false;
@@ -79,19 +83,16 @@ export class ExamComponent implements OnInit, OnDestroy {
         console.error('Error loading exam:', err);
         this.error = true;
         this.isLoading = false;
-      },
+      }
     });
-
-    // Initialize answers array
-    this.answers = new Array(this.questions.length).fill(-1);
   }
 
   ngOnDestroy(): void {
-    if (this.dataSubscription) {
-      this.dataSubscription.unsubscribe();
-    }
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
+    }
+    if (this.dataSubscription) {
+      this.dataSubscription.unsubscribe();
     }
   }
 
@@ -111,25 +112,9 @@ export class ExamComponent implements OnInit, OnDestroy {
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   }
 
-  selectAnswer(choiceIndex: number): void {
-    this.answers[this.currentQuestionIndex] = choiceIndex;
-  }
-
   goToQuestion(index: number): void {
     if (index >= 0 && index < this.questions.length) {
       this.currentQuestionIndex = index;
-    }
-  }
-
-  nextQuestion(): void {
-    if (this.currentQuestionIndex < this.questions.length - 1) {
-      this.currentQuestionIndex++;
-    }
-  }
-
-  previousQuestion(): void {
-    if (this.currentQuestionIndex > 0) {
-      this.currentQuestionIndex--;
     }
   }
 
@@ -143,20 +128,16 @@ export class ExamComponent implements OnInit, OnDestroy {
 
     // TODO: Send results to backend
     console.log('Exam submitted', {
-      examId: this.path,
+      examId: this.examId,
       score: percentage,
       answers: this.answers,
     });
+
+    // Navigate to results page
+    this.router.navigate(['/student/results', this.examId]);
   }
 
-  startExam(): void {
-    if (this.filterdExam) {
-      this.router.navigate(['/student/exams', this.path, 'start']);
-    }
-  }
-
-  // Add public method for navigation
   navigateToExams(): void {
     this.router.navigate(['/student/exams']);
   }
-}
+} 

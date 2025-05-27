@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 interface User {
@@ -29,7 +29,11 @@ interface Result {
   templateUrl: './admin-results.component.html',
   styleUrl: './admin-results.component.css',
 })
-export class AdminResultsComponent {
+export class AdminResultsComponent implements OnInit {
+  searchQuery: string = '';
+  statusFilter: string = 'all';
+  filteredResults: Result[] = [];
+  
   results: Result[] = [
     {
       id: 1,
@@ -80,6 +84,37 @@ export class AdminResultsComponent {
       createdAt: '2024-03-28',
     },
   ];
+
+  ngOnInit(): void {
+    this.filteredResults = this.results;
+  }
+
+  handleSearch(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    this.searchQuery = inputElement.value.toLowerCase();
+    this.applyFilters();
+  }
+
+  handleStatusChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    this.statusFilter = selectElement.value.toLowerCase();
+    this.applyFilters();
+  }
+
+  applyFilters(): void {
+    this.filteredResults = this.results.filter(result => {
+      const matchesSearch = 
+        result.user.name.toLowerCase().includes(this.searchQuery) ||
+        result.exam.title.toLowerCase().includes(this.searchQuery);
+      
+      const matchesStatus = this.statusFilter === 'all' || 
+        (this.statusFilter === 'passed' && result.passed === true) ||
+        (this.statusFilter === 'failed' && result.passed === false) ||
+        (this.statusFilter === 'pending' && result.passed === null);
+      
+      return matchesSearch && matchesStatus;
+    });
+  }
 
   // Helper for grade
   getGrade(score: number | null): string {

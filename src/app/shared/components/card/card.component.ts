@@ -27,26 +27,40 @@ export class CardComponent implements OnInit {
   ngOnInit(): void {
     this.formatCreationDate();
   }
+
   private formatCreationDate(): void {
     try {
-      const dateToFormat = typeof this.creationDateInput === 'string'
-        ? new Date(this.creationDateInput)
-        : this.creationDateInput;
+      let dateToFormat: Date;
 
-      this.formattedCreationDate = this.datePipe.transform(dateToFormat, 'mediumDate') || 'Invalid Date';
-
-      if (this.formattedCreationDate === 'Invalid Date') {
-        throw new Error('Invalid date format');
+      if (this.creationDateInput instanceof Date) {
+        dateToFormat = this.creationDateInput;
+      } else if (typeof this.creationDateInput === 'string') {
+        dateToFormat = new Date(this.creationDateInput);
+      } else {
+        dateToFormat = new Date();
       }
+
+      // Check if the date is valid
+      if (isNaN(dateToFormat.getTime())) {
+        throw new Error('Invalid date');
+      }
+
+      const formatted = this.datePipe.transform(dateToFormat, 'mediumDate');
+      this.formattedCreationDate = formatted || 'Date not available';
     } catch (e) {
-      console.error('Date formatting error:', e);
+      console.warn('Date formatting error:', e);
       this.formattedCreationDate = 'Date not available';
     }
   }
+
   sendExams() {
-    this.dataService.changeData(this.exams);
+    const currentExam = this.exams.find(exam => exam.id === this.id);
+    if (currentExam) {
+      this.dataService.changeData([currentExam]);
+    }
   }
-   onDelete(): void {
+
+  onDelete(): void {
     try {
       const shouldDelete = confirm(`Are you sure you want to delete "${this.title}"?`);
       
@@ -55,7 +69,6 @@ export class CardComponent implements OnInit {
       console.log(`Exam with ID ${this.id} deleted successfully`);
     } catch (error) {
       console.error('Error deleting exam:', error);
-
     }
   }
 }

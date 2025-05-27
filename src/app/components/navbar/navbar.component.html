@@ -22,18 +22,25 @@
       <div class="flex items-center">
         <div class="flex items-center ms-3">
           <div>
-            <button type="button"
+            <button
+              type="button"
               class="flex text-sm bg-zinc-900 rounded-full cursor-pointer focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
-              aria-expanded="false" data-dropdown-toggle="dropdown-user">
+              id="user-menu-button"
+              aria-expanded="false"
+              (click)="toggleDropdown()"
+            >
               <span class="sr-only">Open user menu</span>
-              <img class="w-8 h-8 rounded-full" src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
-                alt="user photo" />
+              <img
+                class="w-8 h-8 rounded-full"
+                src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
+                alt="user photo"
+              />
             </button>
           </div>
           <div
             #dropdown
-            class="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded-sm shadow-sm dark:bg-zinc-800 dark:divide-gray-600"
-            id="dropdown-user">
+            class="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow-lg dark:bg-zinc-800 dark:divide-gray-600 absolute right-0 top-12 w-48"
+            id="user-dropdown">
             <div class="px-4 py-3" role="none">
               <p class="text-sm flex justify-center text-gray-900 dark:text-white" role="none">
                 <svg class="w-6 h-6 me-2 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"

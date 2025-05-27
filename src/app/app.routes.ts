@@ -15,6 +15,7 @@ import { AdminResultsComponent } from './pages/admin/admin-results/admin-results
 import { AddExamComponent } from './pages/admin/add-exam/add-exam.component';
 import { EditExamComponent } from './pages/admin/edit-exam/edit-exam.component';
 import { ExamsComponent } from './pages/exams/exams.component';
+import { ExamStartComponent } from './pages/exam-start/exam-start.component';
 
 
 export const routes: Routes = [
@@ -46,6 +47,7 @@ export const routes: Routes = [
        { path: 'results/:id', component: ResultComponent },
       { path: 'exams', component: ExamsComponent },
       { path: 'exams/:id', component: ExamComponent },
+      { path: 'exams/:id/start', component: ExamStartComponent },
     ]
   },
   {
