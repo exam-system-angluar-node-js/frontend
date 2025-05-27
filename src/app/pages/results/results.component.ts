@@ -5,7 +5,7 @@ import { LgcardComponent } from "../../shared/components/lgcard/lgcard.component
 
 @Component({
   selector: 'app-results',
-  imports: [SmcardComponent, BasechartComponent, LgcardComponent],
+  imports: [LgcardComponent],
   templateUrl: './results.component.html',
   styleUrl: './results.component.css'
 })

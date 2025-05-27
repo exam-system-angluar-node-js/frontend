@@ -4,7 +4,6 @@ import { RegisterComponent } from './pages/register/register.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { SettingsComponent } from './pages/settings/settings.component';
 import { ResultsComponent } from './pages/results/results.component';
-import { ExamsComponent } from './pages/exams/exams.component';
 import { HomeComponent } from './pages/home/home.component';
 import { authGuard } from './guards/auth.guard';
 import { LayoutComponent } from './layout/layout.component';
@@ -13,6 +12,9 @@ import { ResultComponent } from './pages/result/result.component';
 import { AdminComponent } from './pages/admin/admin/admin.component';
 import { AdminManageComponent } from './pages/admin/admin-manage/admin-manage.component';
 import { AdminResultsComponent } from './pages/admin/admin-results/admin-results.component';
+import { AddExamComponent } from './pages/admin/add-exam/add-exam.component';
+import { EditExamComponent } from './pages/admin/edit-exam/edit-exam.component';
+import { ExamsComponent } from './pages/exams/exams.component';
 
 
 export const routes: Routes = [
@@ -21,11 +23,21 @@ export const routes: Routes = [
   { path: 'home', canActivate: [authGuard], component: HomeComponent },
     { 
     path: '', 
-    redirectTo: '/user/dashboard', 
+    redirectTo: '/student/dashboard', 
+    pathMatch: 'full' 
+  },
+    { 
+    path: 'student', 
+    redirectTo: '/student/dashboard', 
+    pathMatch: 'full' 
+  },
+      { 
+    path: 'admin', 
+    redirectTo: '/admin/dashboard', 
     pathMatch: 'full' 
   },
   {
-    path: 'user',
+    path: 'student',
     component: LayoutComponent,
     children: [
       { path: 'dashboard', component: DashboardComponent },
@@ -42,8 +54,10 @@ export const routes: Routes = [
     children: [
       { path: 'dashboard', component: AdminComponent },
       { path: 'settings', component: SettingsComponent },
-      { path: 'manage-exams', component: AdminManageComponent },
-      { path: 'tolab-results', component: AdminResultsComponent }
+      { path: 'manage', component: AdminManageComponent },
+      { path: 'allresults', component: AdminResultsComponent },
+      { path: 'manage/addexam', component: AddExamComponent },
+      { path: 'manage/editexam/:id', component: EditExamComponent }
     ]
   },
 ];

@@ -2,15 +2,14 @@
 import { Component, AfterViewInit } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
 import { FormsModule } from '@angular/forms';
-import { NavbarComponent } from '../../../components/navbar/navbar.component';
-import { SidebarComponent } from '../../../components/sidebar/sidebar.component';
+
 
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [SidebarComponent, NavbarComponent, FormsModule],
+  imports: [ FormsModule],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css'],
 })

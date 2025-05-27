@@ -1,7 +1,5 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NavbarComponent } from '../../../components/navbar/navbar.component';
-import { SidebarComponent } from '../../../components/sidebar/sidebar.component';
 
 interface User {
   id: number;
@@ -27,7 +25,7 @@ interface Result {
 
 @Component({
   selector: 'app-admin-results',
-  imports: [NavbarComponent, SidebarComponent, CommonModule],
+  imports: [ CommonModule],
   templateUrl: './admin-results.component.html',
   styleUrl: './admin-results.component.css',
 })

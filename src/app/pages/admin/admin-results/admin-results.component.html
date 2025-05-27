@@ -1,100 +1,161 @@
-
-<div class=" min-h-screen bg-gray-50 dark:bg-zinc-900">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6">
-    <!-- Filters Section -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-      <!-- Subject Filter -->
-      <div class="w-full lg:w-64">
-        <select
-          id="subjects"
-          class="w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-200 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 p-3 transition-all"
-        >
-          <option value="" selected>All Subjects</option>
-          <option value="math">Mathematics</option>
-          <option value="physics">Physics</option>
-          <option value="chemistry">Chemistry</option>
-          <option value="biology">Biology</option>
-          <option value="english">English</option>
-        </select>
-      </div>
-      <!-- Search by Name -->
-      <div class="w-full lg:w-96">
-        <label for="student-search" class="sr-only">Search students</label>
-        <div class="relative">
-          <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <svg class="w-4 h-4 text-zinc-500 dark:text-zinc-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
-            </svg>
-          </div>
-          <input
-            type="text"
-            id="student-search"
-            class="block w-full p-3 pl-10 text-sm text-zinc-900 border border-zinc-300 rounded-lg bg-white dark:bg-zinc-800 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white focus:ring-purple-500 focus:border-purple-500"
-            placeholder="Search by student name..."
-          />
+<div class="flex flex-col sm:flex-row items-center justify-between mb-4 gap-4">
+  <h1 class="text-3xl font-semibold text-zinc-900 dark:text-white tracking-tight">
+    Tolab Results
+  </h1>
+</div>
+<div class="max-w-7xl mx-auto px-4 pb-8 sm:px-6">
+  <div class="flex flex-col md:flex-row gap-4 justify-between mb-8">
+    <div class="w-full lg:w-64">
+      <select id="subjects"
+        class="w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-200 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 p-3 transition-all">
+        <option value="" selected>All Subjects</option>
+        <option value="math">Mathematics</option>
+        <option value="physics">Physics</option>
+        <option value="chemistry">Chemistry</option>
+        <option value="biology">Biology</option>
+        <option value="english">English</option>
+      </select>
+    </div>
+    <div class="w-full lg:w-96">
+      <label for="student-search" class="sr-only">Search students</label>
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+          <svg class="w-4 h-4 text-zinc-500 dark:text-zinc-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+            fill="none" viewBox="0 0 20 20">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+          </svg>
         </div>
+        <input type="text" id="student-search"
+          class="block w-full p-3 pl-10 text-sm text-zinc-900 border border-zinc-300 rounded-lg bg-white dark:bg-zinc-800 dark:border-zinc-600 dark:placeholder-zinc-400 dark:text-white focus:ring-purple-500 focus:border-purple-500"
+          placeholder="Search by student name..." />
       </div>
     </div>
-    <!-- Students Results Table -->
-    <div class="bg-white dark:bg-zinc-800 rounded-2xl p-8 shadow-lg mb-8">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-2xl font-bold text-zinc-700 dark:text-zinc-200">Students Results</h3>
-        <span class="text-sm text-purple-500 font-medium cursor-pointer hover:underline">Export</span>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead>
-            <tr class="text-zinc-500 dark:text-zinc-400 text-base border-b">
-              <th class="pb-4 text-left font-semibold">Student Name</th>
-              <th class="pb-4 text-left font-semibold">Subject</th>
-              <th class="pb-4 text-left font-semibold">Exam Date</th>
-              <th class="pb-4 text-left font-semibold">Score</th>
-              <th class="pb-4 text-left font-semibold">Grade</th>
-              <th class="pb-4 text-left font-semibold">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              *ngFor="let result of results"
-              class="text-base border-b border-zinc-100 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all duration-200"
-            >
-              <td class="py-4 text-zinc-700 dark:text-zinc-200 font-medium">{{ result.user.name }}</td>
-              <td class="text-zinc-600 dark:text-zinc-300">{{ result.exam.title }}</td>
-              <td class="text-zinc-500 dark:text-zinc-400">{{ result.createdAt }}</td>
-              <td class="text-zinc-700 dark:text-zinc-200 font-semibold">
-                <span *ngIf="result.score !== null; else pendingScore">{{ result.score }}/100</span>
-                <ng-template #pendingScore><span class="text-zinc-400">-</span></ng-template>
-              </td>
-              <td>
-                <span
-                  [ngClass]="{
-                    'font-semibold text-green-600 dark:text-green-400': getGrade(result.score) === 'A+' || getGrade(result.score) === 'A' || getGrade(result.score) === 'B+',
-                    'font-semibold text-yellow-600 dark:text-yellow-400': getGrade(result.score) === 'C' || getGrade(result.score) === 'D',
-                    'font-semibold text-red-600 dark:text-red-400': getGrade(result.score) === 'F',
+  </div>
+  <div class="bg-white dark:bg-zinc-800 rounded-2xl p-8 shadow-lg mb-8">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-2xl font-bold text-zinc-700 dark:text-zinc-200">
+        All Results
+      </h3>
+      <a
+        class="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 cursor-pointer text-white font-semibold rounded-lg shadow transition-all duration-200">
+        <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+          width="24" height="24" fill="none" viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M19 10V4a1 1 0 0 0-1-1H9.914a1 1 0 0 0-.707.293L5.293 7.207A1 1 0 0 0 5 7.914V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2M10 3v4a1 1 0 0 1-1 1H5m5 6h9m0 0-2-2m2 2-2 2" />
+        </svg>
+        Export
+      </a>
+    </div>
+    <div class="hidden md:block overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class=" text-zinc-500 dark:text-zinc-400 text-base border-b">
+            <th class="pb-4 text-left font-semibold">Student Name</th>
+            <th class="pb-4 text-left font-semibold">Subject</th>
+            <th class="pb-4 text-left font-semibold">Exam Date</th>
+            <th class="pb-4 text-left font-semibold">Score</th>
+            <th class="pb-4 text-left font-semibold">Grade</th>
+            <th class="pb-4 text-left font-semibold">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let result of results"
+            class="text-base border-b border-zinc-100 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all duration-200">
+            <td class="py-4 text-zinc-700 dark:text-zinc-200 font-medium">
+              {{ result.user.name }}
+            </td>
+            <td class="text-zinc-600 dark:text-zinc-300">
+              {{ result.exam.title }}
+            </td>
+            <td class="text-zinc-500 dark:text-zinc-400">
+              {{ result.createdAt }}
+            </td>
+            <td class="text-zinc-700 dark:text-zinc-200 font-semibold">
+              <span *ngIf="result.score !== null; else pendingScore">{{ result.score }}/100</span>
+              <ng-template #pendingScore><span class="text-zinc-400">-</span></ng-template>
+            </td>
+            <td>
+              <span [ngClass]="{
+                    'font-semibold text-green-600 dark:text-green-400':
+                      getGrade(result.score) === 'A+' ||
+                      getGrade(result.score) === 'A' ||
+                      getGrade(result.score) === 'B+',
+                    'font-semibold text-yellow-600 dark:text-yellow-400':
+                      getGrade(result.score) === 'C' ||
+                      getGrade(result.score) === 'D',
+                    'font-semibold text-red-600 dark:text-red-400':
+                      getGrade(result.score) === 'F',
                     'text-zinc-400': getGrade(result.score) === '-'
-                  }"
-                >
-                  {{ getGrade(result.score) }}
-                </span>
-              </td>
-              <td>
-                <span
-                  class="px-3 py-1 rounded-full text-xs font-semibold"
-                  [ngClass]="{
-                    'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100': getStatus(result).color === 'green',
-                    'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100': getStatus(result).color === 'blue',
-                    'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100': getStatus(result).color === 'yellow',
-                    'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-100': getStatus(result).color === 'red',
-                    'bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-300': getStatus(result).color === 'zinc',
-                    'bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-100': getStatus(result).color === 'purple'
-                  }"
-                >
-                  {{ getStatus(result).label }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                  }">
+                {{ getGrade(result.score) }}
+              </span>
+            </td>
+            <td>
+              <span class="px-3 py-1 rounded-full text-xs font-semibold" [ngClass]="{
+                    'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100':
+                      getStatus(result).color === 'green',
+                    'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100':
+                      getStatus(result).color === 'blue',
+                    'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100':
+                      getStatus(result).color === 'yellow',
+                    'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-100':
+                      getStatus(result).color === 'red',
+                    'bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-300':
+                      getStatus(result).color === 'zinc',
+                    'bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-100':
+                      getStatus(result).color === 'purple'
+                  }">
+                {{ getStatus(result).label }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="md:hidden space-y-4">
+      <div *ngFor="let result of results"
+        class="bg-white dark:bg-zinc-800 rounded-xl p-4 border border-zinc-200 dark:border-zinc-700 shadow-sm">
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <h4 class="text-lg font-semibold text-zinc-900 dark:text-white">{{ result.user.name }}</h4>
+            <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ result.exam.title }}</p>
+          </div>
+          <span class="px-3 py-1 rounded-full text-xs font-semibold" [ngClass]="{
+              'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100': getStatus(result).color === 'green',
+              'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100': getStatus(result).color === 'blue',
+              'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100': getStatus(result).color === 'yellow',
+              'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-100': getStatus(result).color === 'red',
+              'bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-300': getStatus(result).color === 'zinc',
+              'bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-100': getStatus(result).color === 'purple'
+            }">
+            {{ getStatus(result).label }}
+          </span>
+        </div>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p class="text-zinc-500 dark:text-zinc-400">Exam Date</p>
+            <p class="text-zinc-900 dark:text-white font-medium">{{ result.createdAt }}</p>
+          </div>
+          <div>
+            <p class="text-zinc-500 dark:text-zinc-400">Score</p>
+            <p class="text-zinc-900 dark:text-white font-medium">
+              <span *ngIf="result.score !== null; else pendingScore">{{ result.score }}/100</span>
+              <ng-template #pendingScore><span class="text-zinc-400">-</span></ng-template>
+            </p>
+          </div>
+          <div>
+            <p class="text-zinc-500 dark:text-zinc-400">Grade</p>
+            <p [ngClass]="{
+                'font-semibold text-green-600 dark:text-green-400': getGrade(result.score) === 'A+' || getGrade(result.score) === 'A' || getGrade(result.score) === 'B+',
+                'font-semibold text-yellow-600 dark:text-yellow-400': getGrade(result.score) === 'C' || getGrade(result.score) === 'D',
+                'font-semibold text-red-600 dark:text-red-400': getGrade(result.score) === 'F',
+                'text-zinc-400': getGrade(result.score) === '-'
+              }">
+              {{ getGrade(result.score) }}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
