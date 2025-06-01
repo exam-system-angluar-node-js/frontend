@@ -16,7 +16,7 @@
     <div
       class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg p-6 border border-zinc-200 dark:border-zinc-700"
     >
-      <form class="space-y-6" #examForm="ngForm" (ngSubmit)="createExam()">
+      <form [formGroup]="examForm" (ngSubmit)="onSubmit()" class="space-y-6">
         <!-- Title Input -->
         <div>
           <label
@@ -28,15 +28,13 @@
           <input
             type="text"
             id="title"
-            name="title"
-            [(ngModel)]="examData.title"
-            required
+            formControlName="title"
             class="w-full px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none transition"
             placeholder="Enter exam title"
           />
         </div>
 
-        <!-- Description Input (Mapped to Category for now) -->
+        <!-- Description Input -->
         <div>
           <label
             for="description"
@@ -46,10 +44,8 @@
           </label>
           <textarea
             id="description"
-            name="category"
-            [(ngModel)]="examData.category"
+            formControlName="description"
             rows="4"
-            required
             class="w-full px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none transition resize-none"
             placeholder="Enter exam description"
           ></textarea>
@@ -66,14 +62,12 @@
           <input
             type="date"
             id="startDate"
-            name="startDate"
-            [(ngModel)]="examData.startDate"
-            required
+            formControlName="startDate"
             class="w-full px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none transition"
           />
         </div>
 
-        <!-- Time Limit Input -->
+        <!-- Duration Input -->
         <div>
           <label
             for="duration"
@@ -85,9 +79,7 @@
             <input
               type="number"
               id="duration"
-              name="duration"
-              [(ngModel)]="examData.duration"
-              required
+              formControlName="duration"
               min="1"
               class="w-full px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none transition"
               placeholder="Enter time limit in minutes"
@@ -100,39 +92,17 @@
           </div>
         </div>
 
-        <!-- Status Select -->
-        <div>
-          <label
-            for="status"
-            class="block text-sm font-medium text-zinc-900 dark:text-white mb-2"
-          >
-            Status
-          </label>
-          <select
-            id="status"
-            name="status"
-            [(ngModel)]="examData.status"
-            required
-            class="w-full px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none transition"
-          >
-            <option value="accomplished">Accomplished</option>
-            <option value="active">Active</option>
-            <option value="pending">Pending</option>
-          </select>
-        </div>
-
         <!-- Action Buttons -->
         <div class="flex items-center justify-end gap-4 pt-4">
           <a
-            routerLink="/admin/manage"
-            type="button"
+            routerLink="/teacher/manage"
             class="px-6 py-2.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors"
           >
             Cancel
           </a>
           <button
             type="submit"
-            [disabled]="!examForm.form.valid"
+            [disabled]="examForm.invalid"
             class="inline-flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg shadow transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg

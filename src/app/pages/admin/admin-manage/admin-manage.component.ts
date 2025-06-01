@@ -41,19 +41,21 @@ export class AdminManageComponent implements OnInit {
   onDeleteConfirm(): void {
     if (this.examToDelete) {
       const exam = this.exams.find((e) => e.id === this.examToDelete);
-      
+
       // Call the exam service to delete the exam
-      this.examService.deleteExam(this.examToDelete).subscribe({
-        next: () => {
-          this.exams = this.exams.filter((exam) => exam.id !== this.examToDelete);
-          this.applyFilters();
-          this.toastr.success(`${exam?.title} has been deleted`, '✅ Deleted');
-        },
-        error: (error) => {
-          console.error('Error deleting exam:', error);
-          this.toastr.error('Failed to delete exam', '❌ Error');
-        }
-      });
+      // this.examService.deleteExam(this.examToDelete).subscribe({
+      //   next: () => {
+      //     this.exams = this.exams.filter(
+      //       (exam) => exam.id !== this.examToDelete
+      //     );
+      //     this.applyFilters();
+      //     this.toastr.success(`${exam?.title} has been deleted`, '✅ Deleted');
+      //   },
+      //   error: (error) => {
+      //     console.error('Error deleting exam:', error);
+      //     this.toastr.error('Failed to delete exam', '❌ Error');
+      //   },
+      // });
     }
     this.closeModal();
   }
