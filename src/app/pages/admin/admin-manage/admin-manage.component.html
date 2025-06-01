@@ -1,23 +1,45 @@
-<div class=" min-h-screen  dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 ">
-    <div class="flex flex-col sm:flex-row items-center justify-between mb-4 gap-4">
-      <h1 class="text-3xl font-semibold text-zinc-900 dark:text-white tracking-tight">
+<div class="min-h-screen dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div
+      class="flex flex-col sm:flex-row items-center justify-between mb-4 gap-4"
+    >
+      <h1
+        class="text-3xl font-semibold text-zinc-900 dark:text-white tracking-tight"
+      >
         Manage Exams
       </h1>
-      <a [routerLink]="['/admin','manage', 'addexam']"
-        class="w-full sm:w-fit inline-flex items-center gap-2 px-9 py-3 bg-purple-600 cursor-pointer text-white font-semibold rounded-lg shadow transition-all duration-200">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      <a
+        [routerLink]="['/teacher', 'manage', 'addexam']"
+        class="w-full sm:w-fit inline-flex items-center gap-2 px-9 py-3 bg-purple-600 cursor-pointer text-white font-semibold rounded-lg shadow transition-all duration-200"
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 4v16m8-8H4"
+          />
         </svg>
         Add New Exam
       </a>
     </div>
     <div class="flex flex-col sm:flex-row justify-between gap-4 mb-8">
-      <input (input)="handleSearch($event)" type="text" placeholder="Search exams..."
-        class="w-full sm:w-80 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-600 focus:outline-none transition" />
+      <input
+        (input)="handleSearch($event)"
+        type="text"
+        placeholder="Search exams..."
+        class="w-full sm:w-80 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-600 focus:outline-none transition"
+      />
       <select
-      #category (change)="handleCategoryChange($event)"
-        class="w-full sm:w-56 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-600 focus:outline-none transition">
+        #category
+        (change)="handleCategoryChange($event)"
+        class="w-full sm:w-56 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-600 focus:outline-none transition"
+      >
         <option value="all">All Subjects</option>
         <option value="frontend">Front-End</option>
         <option value="backend">Back-End</option>
@@ -25,10 +47,18 @@
       </select>
     </div>
     <div
-      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 justify-items-center sm:justify-between">
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 justify-items-center sm:justify-between"
+    >
       @for (exam of filteredExams; track exam.id) {
-      <app-card [id]="exam.id" [title]="exam.title" [description]="exam.description"
-        [questionsCount]="exam.questionsCount" [manage]="true" [category]="exam.category" (delete)="handleDelete($event)"></app-card>
+      <app-card
+        [id]="exam.id"
+        [title]="exam.title"
+        [description]="exam.description"
+        [questionsCount]="exam.questions.length"
+        [manage]="true"
+        [category]="exam.category"
+        (delete)="handleDelete($event)"
+      ></app-card>
       }
     </div>
   </div>
