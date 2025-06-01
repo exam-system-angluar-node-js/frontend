@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ToastrService } from 'ngx-toastr';
 
 interface Question {
   id: number;
@@ -35,7 +36,10 @@ export class EditExamComponent implements OnInit {
   // Questions list
   questions: Question[] = [];
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(
+    private route: ActivatedRoute,
+    private toastr: ToastrService
+  ) {}
 
   ngOnInit(): void {
     this.examId = this.route.snapshot.params['id'];
@@ -82,6 +86,7 @@ export class EditExamComponent implements OnInit {
 
   onQuestionSubmit(): void {
     if (!this.questionText || this.choices.some(choice => !choice)) {
+      this.toastr.error('Please fill in all fields', 'Error');
       return;
     }
 
@@ -95,6 +100,7 @@ export class EditExamComponent implements OnInit {
           choices: [...this.choices],
           correctAnswer: this.correctAnswer
         };
+        this.toastr.success('Question updated successfully', 'Success');
       }
     } else {
       // Add new question
@@ -105,6 +111,7 @@ export class EditExamComponent implements OnInit {
         correctAnswer: this.correctAnswer
       };
       this.questions.push(newQuestion);
+      this.toastr.success('Question added successfully', 'Success');
     }
 
     this.toggleAddQuestionForm();
@@ -113,6 +120,7 @@ export class EditExamComponent implements OnInit {
   deleteQuestion(questionId: number): void {
     if (confirm('Are you sure you want to delete this question?')) {
       this.questions = this.questions.filter(q => q.id !== questionId);
+      this.toastr.success('Question deleted successfully', 'Success');
     }
   }
 
@@ -125,5 +133,6 @@ export class EditExamComponent implements OnInit {
       timeLimit: this.timeLimit,
       questions: this.questions
     });
+    this.toastr.success('Exam changes saved successfully', 'Success');
   }
 }

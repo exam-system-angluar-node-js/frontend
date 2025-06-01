@@ -12,12 +12,13 @@ import { DatePipe } from '@angular/common';
 })
 export class CardComponent implements OnInit {
   constructor(private dataService: DataService, private datePipe: DatePipe) { }
-  @Input() exams: Array<{ id: number; title: string; description: string; questionsCount: number, category: string,creationDateInput: string|Date }> = []
+  @Input() exams: Array<{ id: number; title: string; description: string; questionsCount: number, category: string,creationDateInput: string|Date,instructorName: string }> = []
   @Input() id: number = 0;
   @Input() title: string = '';
   @Input() description: string = '';
   @Input() category: string = '';
   @Input() questionsCount: number = 0;
+  @Input() instructorName : string = '';
   @Input() creationDateInput: string | Date = new Date();
   @Input() manage: boolean = false;
   @Output() delete = new EventEmitter<number>();
@@ -61,18 +62,6 @@ export class CardComponent implements OnInit {
   }
 
   onDelete(): void {
-    try {
-      const shouldDelete = confirm(`Are you sure you want to delete "${this.title}"?`);
-      
-      if (!shouldDelete) return;
-      this.delete.emit(this.id);
-      console.log(`Exam with ID ${this.id} deleted successfully`);
-    } catch (error) {
-      console.error('Error deleting exam:', error);
-    }
-  }
+    this.delete.emit(this.id);
 }
-
-
-
-
+}

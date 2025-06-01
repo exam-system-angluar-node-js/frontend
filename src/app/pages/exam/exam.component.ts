@@ -1,9 +1,10 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, Output, EventEmitter } from '@angular/core';
 import { CardComponent } from '../../shared/components/card/card.component';
 import { DataService } from '../../services/data.service';
 import { Subscription } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 interface Question {
   id: number;
@@ -23,7 +24,7 @@ interface Exam {
 
 @Component({
   selector: 'app-exam',
-  imports: [CardComponent, FormsModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './exam.component.html',
   styleUrl: './exam.component.css',
 })
@@ -56,7 +57,7 @@ export class ExamComponent implements OnInit, OnDestroy {
     private dataService: DataService,
     private route: ActivatedRoute,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.path = this.route.snapshot.paramMap.get('id');
@@ -160,3 +161,31 @@ export class ExamComponent implements OnInit, OnDestroy {
     this.router.navigate(['/student/exams']);
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

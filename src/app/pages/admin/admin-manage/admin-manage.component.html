@@ -33,3 +33,11 @@
     </div>
   </div>
 </div>
+
+<app-confirm-modal
+  [isOpen]="showDeleteModal"
+  [title]="'Delete Exam'"
+  [message]="examToDelete ? 'Are you sure you want to delete this exam? This action cannot be undone.' : ''"
+  (confirm)="onDeleteConfirm()"
+  (cancel)="onDeleteCancel()"
+></app-confirm-modal>

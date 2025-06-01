@@ -1,20 +1,13 @@
-<app-navbar
-  [isSidebarOpen]="togglerState"
-  (toggleState)="onToggleState($event)"
-/>
-<app-sidebar [isOpen]="togglerState" (closeSidebar)="togglerState = false" />
-<div class="min-h-screen dark:bg-zinc-900 py-4">
-  <div class="container mx-auto px-4 my-20">
+<app-navbar *ngIf="!focusMode" [isSidebarOpen]="togglerState" (toggleState)="onToggleState($event)" />
+<app-sidebar *ngIf="!focusMode" [isOpen]="togglerState" (closeSidebar)="togglerState = false" />
+
+<main class="min-h-screen dark:bg-zinc-900">
+  <div class="container mx-auto px-4 py-20">
     @if (togglerState) {
-    <div
-      class="fixed inset-0 z-30 bg-black/70"
-      (click)="togglerState = false"
-    ></div>
-    <div class="sm:ml-70 md:ml-64 lg:ml-34">
+    <div class="fixed inset-0 z-30 bg-black/70" (click)="togglerState = false"></div>
+    }
+    <div [class.ml-64]="togglerState">
       <router-outlet></router-outlet>
     </div>
-    }@else {
-    <router-outlet></router-outlet>
-    }
   </div>
-</div>
+</main>
