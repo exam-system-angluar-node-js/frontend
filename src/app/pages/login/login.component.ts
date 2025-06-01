@@ -39,6 +39,8 @@ export class LoginComponent {
     this.router.navigate(['/signup']);
   }
   login() {
+    console.log('login clicked');
+
     if (this.loginForm.status === 'VALID') {
       const email = this.getEmail?.value;
       const password = this.getPassword?.value;
@@ -49,7 +51,18 @@ export class LoginComponent {
             password,
           })
           .subscribe({
-            next: () => this.router.navigate(['/home']),
+            next: (res: any) => {
+              const role = res.user?.role;
+              console.log('Logged in as role:', role); // Debug log
+
+              if (role === 'student') {
+                this.router.navigate(['/student/dashboard']);
+              } else if (role === 'teacher') {
+                this.router.navigate(['/teacher/dashboard']);
+              } else {
+                console.log('Unknown role or not stored yet.');
+              }
+            },
             error: (err) => console.log('login error', err),
           });
       }

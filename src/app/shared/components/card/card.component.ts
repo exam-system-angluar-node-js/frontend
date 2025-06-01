@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { DataService } from '../../../services/data.service';
 import { DatePipe } from '@angular/common';
 
@@ -11,16 +11,33 @@ import { DatePipe } from '@angular/common';
   styleUrl: './card.component.css',
 })
 export class CardComponent implements OnInit {
-  constructor(private dataService: DataService, private datePipe: DatePipe) { }
-  @Input() exams: Array<{ id: number; title: string; description: string; questionsCount: number, category: string,creationDateInput: string|Date }> = []
+  constructor(
+    private dataService: DataService,
+    private datePipe: DatePipe,
+    private router: Router
+  ) {}
+
+  @Input() exams: Array<{
+    id: number;
+    title: string;
+    description: string;
+    questionsCount: number;
+    category: string;
+    creationDateInput: string | Date;
+    instructorName: string;
+  }> = [];
+
   @Input() id: number = 0;
   @Input() title: string = '';
   @Input() description: string = '';
   @Input() category: string = '';
   @Input() questionsCount: number = 0;
+  @Input() instructorName: string = '';
   @Input() creationDateInput: string | Date = new Date();
   @Input() manage: boolean = false;
-  @Output() delete = new EventEmitter<number>();
+  @Input() userRole: string = 'teacher'; // Default to teacher, can be 'admin' or 'teacher'
+
+  @Output() delete = new EventEmitter();
 
   public formattedCreationDate: string = '';
 
@@ -54,25 +71,29 @@ export class CardComponent implements OnInit {
   }
 
   sendExams() {
-    const currentExam = this.exams.find(exam => exam.id === this.id);
+    const currentExam = this.exams.find((exam) => exam.id === this.id);
     if (currentExam) {
       this.dataService.changeData([currentExam]);
     }
+    // Additional logic for viewing exams
+    console.log('Viewing exam:', this.id);
   }
 
   onDelete(): void {
-    try {
-      const shouldDelete = confirm(`Are you sure you want to delete "${this.title}"?`);
-      
-      if (!shouldDelete) return;
-      this.delete.emit(this.id);
-      console.log(`Exam with ID ${this.id} deleted successfully`);
-    } catch (error) {
-      console.error('Error deleting exam:', error);
+    this.delete.emit(this.id);
+  }
+
+  getEditRoute(): string[] {
+    // Determine the route based on current URL or user role
+    const currentUrl = this.router.url;
+    if (currentUrl.includes('/admin/')) {
+      return ['/admin', 'manage', 'editexam', this.id.toString()];
+    } else if (currentUrl.includes('/teacher/')) {
+      return ['/teacher', 'manage', 'editexam', this.id.toString()];
+    } else {
+      // Default fallback based on userRole
+      const baseRoute = this.userRole === 'admin' ? '/admin' : '/teacher';
+      return [baseRoute, 'manage', 'editexam', this.id.toString()];
     }
   }
 }
-
-
-
-

@@ -16,50 +16,53 @@ import { AddExamComponent } from './pages/admin/add-exam/add-exam.component';
 import { EditExamComponent } from './pages/admin/edit-exam/edit-exam.component';
 import { ExamsComponent } from './pages/exams/exams.component';
 import { ExamStartComponent } from './pages/exam-start/exam-start.component';
-
+import { StudentGuard } from './guards/student.guard';
+import { TeacherGuard } from './guards/teacher.guard';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: RegisterComponent },
   { path: 'home', canActivate: [authGuard], component: HomeComponent },
-    { 
-    path: '', 
-    redirectTo: '/student/dashboard', 
-    pathMatch: 'full' 
+  {
+    path: '',
+    redirectTo: '/student/dashboard',
+    pathMatch: 'full',
   },
-    { 
-    path: 'student', 
-    redirectTo: '/student/dashboard', 
-    pathMatch: 'full' 
+  {
+    path: 'student',
+    redirectTo: '/student/dashboard',
+    pathMatch: 'full',
   },
-      { 
-    path: 'admin', 
-    redirectTo: '/admin/dashboard', 
-    pathMatch: 'full' 
+  {
+    path: 'teacher',
+    redirectTo: '/teacher/dashboard',
+    pathMatch: 'full',
   },
   {
     path: 'student',
     component: LayoutComponent,
+    canActivate: [StudentGuard],
     children: [
       { path: 'dashboard', component: DashboardComponent },
       { path: 'settings', component: SettingsComponent },
       { path: 'results', component: ResultsComponent },
-       { path: 'results/:id', component: ResultComponent },
+      { path: 'results/:id', component: ResultComponent },
       { path: 'exams', component: ExamsComponent },
       { path: 'exams/:id', component: ExamComponent },
       { path: 'exams/:id/start', component: ExamStartComponent },
-    ]
+    ],
   },
   {
-    path: 'admin',
+    path: 'teacher',
     component: LayoutComponent,
+    canActivate: [TeacherGuard],
     children: [
       { path: 'dashboard', component: AdminComponent },
       { path: 'settings', component: SettingsComponent },
       { path: 'manage', component: AdminManageComponent },
       { path: 'allresults', component: AdminResultsComponent },
       { path: 'manage/addexam', component: AddExamComponent },
-      { path: 'manage/editexam/:id', component: EditExamComponent }
-    ]
+      { path: 'manage/editexam/:id', component: EditExamComponent },
+    ],
   },
 ];

@@ -4,7 +4,7 @@
   <div class="h-full flex flex-col justify-between px-3 pb-4 overflow-y-auto bg-white dark:bg-zinc-900">
     <ul class="space-y-2 font-medium">
       <li>
-        <a (click)="closeSidebar.emit()" [routerLink]="queryPath === 'student'? ['/student', 'dashboard']: ['/admin', 'dashboard']"
+        <a (click)="closeSidebar.emit()" [routerLink]="queryPath === 'student'? ['/student', 'dashboard']: ['/teacher', 'dashboard']"
           class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 group">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
@@ -17,7 +17,7 @@
         </a>
       </li>
       <li>
-        <a (click)="closeSidebar.emit()" [routerLink]="queryPath === 'student'? ['/student', 'exams']: ['/admin', 'manage']"
+        <a (click)="closeSidebar.emit()" [routerLink]="queryPath === 'student'? ['/student', 'exams']: ['/teacher', 'manage']"
           class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 group">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
@@ -30,7 +30,7 @@
         </a>
       </li>
       <li>
-        <a (click)="closeSidebar.emit()" [routerLink]="queryPath === 'student'? ['/student', 'results']: ['/admin', 'allresults']"
+        <a (click)="closeSidebar.emit()" [routerLink]="queryPath === 'student'? ['/student', 'results']: ['/teacher', 'allresults']"
           class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 group">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
@@ -48,7 +48,7 @@
       class="flex items-center justify-between max-w-sm p-3 bg-white border border-zinc-200 rounded-lg shadow-sm hover:bg-zinc-100 dark:bg-zinc-800 dark:border-zinc-700 dark:hover:bg-zinc-700">
       <div class="flex items-center">
         <a (click)="closeSidebar.emit()" 
-        [routerLink]="queryPath === 'student'? ['/student', 'settings']: ['/admin', 'settings']"
+        [routerLink]="queryPath === 'student'? ['/student', 'settings']: ['/teacher', 'settings']"
           class="text-sm bg-zinc-900 rounded-full">
           <span class="sr-only">Open user menu</span>
           <img class="w-10 h-10 rounded-full" src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"

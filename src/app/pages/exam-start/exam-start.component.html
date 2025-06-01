@@ -33,6 +33,14 @@
     } @else {
     <!-- Exam Content -->
     <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg p-4 sm:p-6 mb-8">
+      <!-- Progress Bar -->
+      <div class="w-full h-2 bg-zinc-100 dark:bg-zinc-700 rounded-full mb-6 overflow-hidden">
+        <div class="h-full bg-purple-600 transition-all duration-1000 ease-linear"
+             [style.width.%]="progressPercentage"
+             [class]="progressPercentage < 25 ? 'bg-red-500' : progressPercentage < 50 ? 'bg-orange-500' : 'bg-purple-600'">
+        </div>
+      </div>
+      
       <!-- Header with Timer -->
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
@@ -41,7 +49,6 @@
         </div>
         <div class="flex items-center space-x-4">
           <div class="text-right">
-            <p class="text-sm text-zinc-500 dark:text-zinc-400">Time Remaining</p>
             <p class="text-xl sm:text-2xl font-bold text-purple-600 dark:text-purple-400">{{ formatTime() }}</p>
           </div>
           <div class="bg-purple-100 dark:bg-purple-900 p-2 sm:p-3 rounded-full">

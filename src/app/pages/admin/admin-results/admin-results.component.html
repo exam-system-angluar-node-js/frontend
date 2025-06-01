@@ -1,20 +1,67 @@
-
 <div class="max-w-7xl mx-auto px-4 pb-8 sm:px-6">
-  <div class="flex flex-col sm:flex-row items-center justify-between mb-4 gap-4">
-    <h1 class="text-3xl font-semibold text-zinc-900 dark:text-white tracking-tight">
+  <div
+    class="flex flex-col sm:flex-row items-center justify-between mb-4 gap-4"
+  >
+    <h1
+      class="text-3xl font-semibold text-zinc-900 dark:text-white tracking-tight"
+    >
       Tolab Results
     </h1>
+    <button
+      (click)="refreshResults()"
+      [disabled]="loading"
+      class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-medium rounded-lg transition-colors duration-200"
+    >
+      <svg
+        class="w-4 h-4"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+        ></path>
+      </svg>
+      {{ loading ? "Loading..." : "Refresh" }}
+    </button>
   </div>
+
+  <!-- Error Message -->
+  <div
+    *ngIf="error"
+    class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+  >
+    <div class="flex items-center">
+      <svg
+        class="w-5 h-5 text-red-600 dark:text-red-400 mr-2"
+        fill="currentColor"
+        viewBox="0 0 20 20"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+          clip-rule="evenodd"
+        ></path>
+      </svg>
+      <span class="text-red-800 dark:text-red-200">{{ error }}</span>
+    </div>
+  </div>
+
   <div class="flex flex-col sm:flex-row justify-between gap-4 mb-8">
-    <input 
-      (input)="handleSearch($event)" 
-      type="text" 
+    <input
+      (input)="handleSearch($event)"
+      type="text"
       placeholder="Search by student name or exam title..."
-      class="w-full sm:w-80 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-600 focus:outline-none transition" 
+      [disabled]="loading"
+      class="w-full sm:w-80 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-600 focus:outline-none transition disabled:opacity-50 disabled:cursor-not-allowed"
     />
     <select
       (change)="handleStatusChange($event)"
-      class="w-full sm:w-56 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-600 focus:outline-none transition"
+      [disabled]="loading"
+      class="w-full sm:w-56 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-600 focus:outline-none transition disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <option value="all">All Status</option>
       <option value="passed">Passed</option>
@@ -22,25 +69,84 @@
       <option value="pending">Pending</option>
     </select>
   </div>
+
   <div class="bg-white dark:bg-zinc-800 rounded-2xl p-8 shadow-lg mb-8">
     <div class="flex items-center flex-col md:flex-row justify-between mb-6">
-      <h3 class="text-2xl mb-5 md:mb-0 font-bold text-zinc-700 dark:text-zinc-200">
+      <h3
+        class="text-2xl mb-5 md:mb-0 font-bold text-zinc-700 dark:text-zinc-200"
+      >
         All Results
       </h3>
-      <a
-        class="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 cursor-pointer text-white font-semibold rounded-lg shadow transition-all duration-200">
-        <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-          width="24" height="24" fill="none" viewBox="0 0 24 24">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M19 10V4a1 1 0 0 0-1-1H9.914a1 1 0 0 0-.707.293L5.293 7.207A1 1 0 0 0 5 7.914V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2M10 3v4a1 1 0 0 1-1 1H5m5 6h9m0 0-2-2m2 2-2 2" />
+      <button
+        (click)="exportResults()"
+        [disabled]="loading || filteredResults.length === 0"
+        class="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg shadow transition-all duration-200"
+      >
+        <svg
+          class="w-6 h-6"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 10V4a1 1 0 0 0-1-1H9.914a1 1 0 0 0-.707.293L5.293 7.207A1 1 0 0 0 5 7.914V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2M10 3v4a1 1 0 0 1-1 1H5m5 6h9m0 0-2-2m2 2-2 2"
+          />
         </svg>
         Export
-      </a>
+      </button>
     </div>
-    <div class="hidden md:block overflow-x-auto">
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="flex items-center justify-center py-12">
+      <div class="flex items-center gap-3">
+        <div
+          class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"
+        ></div>
+        <span class="text-zinc-600 dark:text-zinc-400">Loading results...</span>
+      </div>
+    </div>
+
+    <!-- No Results -->
+    <div
+      *ngIf="!loading && filteredResults.length === 0 && !error"
+      class="text-center py-12"
+    >
+      <svg
+        class="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500 mb-4"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        ></path>
+      </svg>
+      <h3 class="text-lg font-medium text-zinc-900 dark:text-white mb-1">
+        No results found
+      </h3>
+      <p class="text-zinc-500 dark:text-zinc-400">
+        Try adjusting your search or filter criteria.
+      </p>
+    </div>
+
+    <!-- Desktop Table -->
+    <div
+      *ngIf="!loading && filteredResults.length > 0"
+      class="hidden md:block overflow-x-auto"
+    >
       <table class="w-full">
         <thead>
-          <tr class=" text-zinc-500 dark:text-zinc-400 text-base border-b">
+          <tr class="text-zinc-500 dark:text-zinc-400 text-base border-b">
             <th class="pb-4 text-left font-semibold">Student Name</th>
             <th class="pb-4 text-left font-semibold">Subject</th>
             <th class="pb-4 text-left font-semibold">Exam Date</th>
@@ -50,8 +156,10 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let result of filteredResults"
-            class="text-base border-b border-zinc-100 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all duration-200">
+          <tr
+            *ngFor="let result of filteredResults"
+            class="text-base border-b border-zinc-100 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all duration-200"
+          >
             <td class="py-4 text-zinc-700 dark:text-zinc-200 font-medium">
               {{ result.user.name }}
             </td>
@@ -59,43 +167,52 @@
               {{ result.exam.title }}
             </td>
             <td class="text-zinc-500 dark:text-zinc-400">
-              {{ result.createdAt }}
+              {{ formatDate(result.createdAt) }}
             </td>
             <td class="text-zinc-700 dark:text-zinc-200 font-semibold">
-              <span *ngIf="result.score !== null; else pendingScore">{{ result.score }}/100</span>
-              <ng-template #pendingScore><span class="text-zinc-400">-</span></ng-template>
+              <span *ngIf="result.score !== null; else pendingScore"
+                >{{ result.score }}/100</span
+              >
+              <ng-template #pendingScore
+                ><span class="text-zinc-400">-</span></ng-template
+              >
             </td>
             <td>
-              <span [ngClass]="{
-                    'font-semibold text-green-600 dark:text-green-400':
-                      getGrade(result.score) === 'A+' ||
-                      getGrade(result.score) === 'A' ||
-                      getGrade(result.score) === 'B+',
-                    'font-semibold text-yellow-600 dark:text-yellow-400':
-                      getGrade(result.score) === 'C' ||
-                      getGrade(result.score) === 'D',
-                    'font-semibold text-red-600 dark:text-red-400':
-                      getGrade(result.score) === 'F',
-                    'text-zinc-400': getGrade(result.score) === '-'
-                  }">
+              <span
+                [ngClass]="{
+                  'font-semibold text-green-600 dark:text-green-400':
+                    getGrade(result.score) === 'A+' ||
+                    getGrade(result.score) === 'A' ||
+                    getGrade(result.score) === 'B+',
+                  'font-semibold text-yellow-600 dark:text-yellow-400':
+                    getGrade(result.score) === 'C' ||
+                    getGrade(result.score) === 'D',
+                  'font-semibold text-red-600 dark:text-red-400':
+                    getGrade(result.score) === 'F',
+                  'text-zinc-400': getGrade(result.score) === '-'
+                }"
+              >
                 {{ getGrade(result.score) }}
               </span>
             </td>
             <td>
-              <span class="px-3 py-1 rounded-full text-xs font-semibold" [ngClass]="{
-                    'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100':
-                      getStatus(result).color === 'green',
-                    'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100':
-                      getStatus(result).color === 'blue',
-                    'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100':
-                      getStatus(result).color === 'yellow',
-                    'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-100':
-                      getStatus(result).color === 'red',
-                    'bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-300':
-                      getStatus(result).color === 'zinc',
-                    'bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-100':
-                      getStatus(result).color === 'purple'
-                  }">
+              <span
+                class="px-3 py-1 rounded-full text-xs font-semibold"
+                [ngClass]="{
+                  'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100':
+                    getStatus(result).color === 'green',
+                  'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100':
+                    getStatus(result).color === 'blue',
+                  'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100':
+                    getStatus(result).color === 'yellow',
+                  'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-100':
+                    getStatus(result).color === 'red',
+                  'bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-300':
+                    getStatus(result).color === 'zinc',
+                  'bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-100':
+                    getStatus(result).color === 'purple'
+                }"
+              >
                 {{ getStatus(result).label }}
               </span>
             </td>
@@ -103,45 +220,79 @@
         </tbody>
       </table>
     </div>
-    <div class="md:hidden space-y-4">
-      <div *ngFor="let result of filteredResults"
-        class="bg-white dark:bg-zinc-800 rounded-xl p-4 border border-zinc-200 dark:border-zinc-700 shadow-sm">
+
+    <!-- Mobile Cards -->
+    <div
+      *ngIf="!loading && filteredResults.length > 0"
+      class="md:hidden space-y-4"
+    >
+      <div
+        *ngFor="let result of filteredResults"
+        class="bg-white dark:bg-zinc-800 rounded-xl p-4 border border-zinc-200 dark:border-zinc-700 shadow-sm"
+      >
         <div class="flex justify-between items-start mb-3">
           <div>
-            <h4 class="text-lg font-semibold text-zinc-900 dark:text-white">{{ result.user.name }}</h4>
-            <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ result.exam.title }}</p>
+            <h4 class="text-lg font-semibold text-zinc-900 dark:text-white">
+              {{ result.user.name }}
+            </h4>
+            <p class="text-sm text-zinc-600 dark:text-zinc-400">
+              {{ result.exam.title }}
+            </p>
           </div>
-          <span class="px-3 py-1 rounded-full text-xs font-semibold" [ngClass]="{
-              'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100': getStatus(result).color === 'green',
-              'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100': getStatus(result).color === 'blue',
-              'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100': getStatus(result).color === 'yellow',
-              'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-100': getStatus(result).color === 'red',
-              'bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-300': getStatus(result).color === 'zinc',
-              'bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-100': getStatus(result).color === 'purple'
-            }">
+          <span
+            class="px-3 py-1 rounded-full text-xs font-semibold"
+            [ngClass]="{
+              'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100':
+                getStatus(result).color === 'green',
+              'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100':
+                getStatus(result).color === 'blue',
+              'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100':
+                getStatus(result).color === 'yellow',
+              'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-100':
+                getStatus(result).color === 'red',
+              'bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-300':
+                getStatus(result).color === 'zinc',
+              'bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-100':
+                getStatus(result).color === 'purple'
+            }"
+          >
             {{ getStatus(result).label }}
           </span>
         </div>
         <div class="grid grid-cols-2 gap-4 text-sm">
           <div>
             <p class="text-zinc-500 dark:text-zinc-400">Exam Date</p>
-            <p class="text-zinc-900 dark:text-white font-medium">{{ result.createdAt }}</p>
+            <p class="text-zinc-900 dark:text-white font-medium">
+              {{ formatDate(result.createdAt) }}
+            </p>
           </div>
           <div>
             <p class="text-zinc-500 dark:text-zinc-400">Score</p>
             <p class="text-zinc-900 dark:text-white font-medium">
-              <span *ngIf="result.score !== null; else pendingScore">{{ result.score }}/100</span>
-              <ng-template #pendingScore><span class="text-zinc-400">-</span></ng-template>
+              <span *ngIf="result.score !== null; else pendingScore"
+                >{{ result.score }}/100</span
+              >
+              <ng-template #pendingScore
+                ><span class="text-zinc-400">-</span></ng-template
+              >
             </p>
           </div>
           <div>
             <p class="text-zinc-500 dark:text-zinc-400">Grade</p>
-            <p [ngClass]="{
-                'font-semibold text-green-600 dark:text-green-400': getGrade(result.score) === 'A+' || getGrade(result.score) === 'A' || getGrade(result.score) === 'B+',
-                'font-semibold text-yellow-600 dark:text-yellow-400': getGrade(result.score) === 'C' || getGrade(result.score) === 'D',
-                'font-semibold text-red-600 dark:text-red-400': getGrade(result.score) === 'F',
+            <p
+              [ngClass]="{
+                'font-semibold text-green-600 dark:text-green-400':
+                  getGrade(result.score) === 'A+' ||
+                  getGrade(result.score) === 'A' ||
+                  getGrade(result.score) === 'B+',
+                'font-semibold text-yellow-600 dark:text-yellow-400':
+                  getGrade(result.score) === 'C' ||
+                  getGrade(result.score) === 'D',
+                'font-semibold text-red-600 dark:text-red-400':
+                  getGrade(result.score) === 'F',
                 'text-zinc-400': getGrade(result.score) === '-'
-              }">
+              }"
+            >
               {{ getGrade(result.score) }}
             </p>
           </div>
