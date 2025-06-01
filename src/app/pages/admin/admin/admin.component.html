@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50 dark:bg-zinc-900">
+<div class="min-h-screen bg-gray-50 dark:bg-zinc-900 py-8">
   <div class="max-w-7xl mx-auto px-4 sm:px-6">
     <!-- Header -->
     <div
@@ -116,6 +116,7 @@
               >
                 {{ dashboardStats.totalStudents | number }}
               </p>
+              <p class="text-sm text-zinc-400 mt-1">Participated in exams</p>
             </div>
             <div class="bg-blue-100 dark:bg-blue-900 p-3 rounded-full">
               <svg
@@ -149,6 +150,7 @@
               >
                 {{ dashboardStats.totalExams | number }}
               </p>
+              <p class="text-sm text-zinc-400 mt-1">Created by you</p>
             </div>
             <div class="bg-green-100 dark:bg-green-900 p-3 rounded-full">
               <svg
@@ -158,10 +160,9 @@
                 viewBox="0 0 24 24"
               >
                 <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                  fill-rule="evenodd"
+                  d="M6 2a2 2 0 0 0-2 2v15a3 3 0 0 0 3 3h12a1 1 0 1 0 0-2h-2v-2h2a1 1 0 0 0 1-1V4a2 2 0 0 0-2-2h-8v16h5v2H7a1 1 0 1 1 0-2h1V2H6Z"
+                  clip-rule="evenodd"
                 />
               </svg>
             </div>
@@ -182,6 +183,7 @@
               >
                 {{ displayTotalQuestions | number }}
               </p>
+              <p class="text-sm text-zinc-400 mt-1">Across all exams</p>
             </div>
             <div class="bg-purple-100 dark:bg-purple-900 p-3 rounded-full">
               <svg
@@ -213,6 +215,7 @@
               <p class="text-3xl font-bold text-red-600 dark:text-red-400 mt-2">
                 {{ displayPassRate }}%
               </p>
+              <p class="text-sm text-zinc-400 mt-1">Success rate</p>
             </div>
             <div class="bg-red-100 dark:bg-red-900 p-3 rounded-full">
               <svg
@@ -268,15 +271,17 @@
 
       <!-- Recent Results -->
       <div
-        class="bg-white dark:bg-zinc-800 rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-300"
+        class="bg-white dark:bg-zinc-800 rounded-2xl p-4 sm:p-6 md:p-8 shadow-md hover:shadow-xl transition-all duration-300"
       >
-        <div class="flex items-center justify-between mb-6">
+        <div
+          class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6"
+        >
           <h3 class="text-xl font-semibold text-zinc-700 dark:text-zinc-300">
             Recent Results
             {{ selectedExam ? " - " + selectedExam.exam.title : "" }}
           </h3>
           <span
-            class="text-sm text-purple-500 font-medium cursor-pointer hover:text-purple-600"
+            class="text-sm text-purple-500 font-medium cursor-pointer hover:text-purple-600 transition-colors"
             >View All</span
           >
         </div>
@@ -303,10 +308,10 @@
         <div class="space-y-4">
           <div
             *ngFor="let result of filteredResults; trackBy: trackByResultId"
-            class="flex items-center text-sm p-4 hover:bg-zinc-50 dark:hover:bg-zinc-700 rounded-xl transition-all duration-200 transform hover:-translate-x-1"
+            class="flex flex-col sm:flex-row items-start sm:items-center text-sm p-4 hover:bg-zinc-50 dark:hover:bg-zinc-700 rounded-xl transition-all duration-200 transform hover:-translate-x-1"
           >
             <div
-              class="w-12 h-12 bg-purple-100 dark:bg-purple-800 rounded-full flex items-center justify-center mr-4"
+              class="w-12 h-12 bg-purple-100 dark:bg-purple-800 rounded-full flex items-center justify-center mb-3 sm:mb-0 sm:mr-4"
             >
               <span
                 class="text-lg font-bold text-purple-600 dark:text-purple-300"
@@ -314,8 +319,8 @@
                 {{ result.score }}%
               </span>
             </div>
-            <div class="flex-1">
-              <p class="text-zinc-600 dark:text-zinc-300">
+            <div class="flex-1 min-w-0">
+              <p class="text-zinc-600 dark:text-zinc-300 truncate">
                 <span class="font-semibold">{{ result.user.name }}</span>
                 completed
                 <span class="text-purple-600 dark:text-purple-400">{{
@@ -336,7 +341,7 @@
               </p>
             </div>
             <span
-              class="ml-auto text-zinc-400 text-xs bg-zinc-100 dark:bg-zinc-700 px-3 py-1 rounded-full"
+              class="mt-2 sm:mt-0 sm:ml-auto text-zinc-400 text-xs bg-zinc-100 dark:bg-zinc-700 px-3 py-1 rounded-full whitespace-nowrap"
             >
               {{ result.createdAt | date : "short" }}
             </span>

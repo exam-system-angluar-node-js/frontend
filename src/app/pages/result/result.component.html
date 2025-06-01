@@ -1,1 +1,121 @@
-<p>result works!</p>
+<div class="min-h-screen text-zinc-100 flex items-center justify-center p-4 bg-zinc-900">
+    <div class="card max-w-2xl w-full rounded-2xl border border-zinc-800 overflow-hidden shadow-2xl bg-gradient-to-br from-zinc-800/80 to-zinc-900/90 backdrop-blur-sm">
+        <!-- Header Section -->
+        <div class="p-6 border-b border-zinc-800 bg-zinc-800/30">
+            <h1 class="text-2xl font-bold text-white">Introduction to Mathematics - Result</h1>
+            <p class="text-zinc-400 mt-1">Basic math concepts including algebra and geometry.</p>
+        </div>
+
+        <!-- Score Section -->
+        <div class="p-6 flex flex-col md:flex-row items-center gap-6 border-b border-zinc-800">
+            <div class="relative w-24 h-24 flex-shrink-0">
+                <div class="w-full h-full rounded-full flex items-center justify-center"
+                    [style.background]="'conic-gradient(rgb(0 188 125)' + score + '%, #3f3f46 ' + (100 - score) + '%)'">
+                    <div class="absolute w-[85%] h-[85%] bg-zinc-900 rounded-full flex flex-col items-center justify-center">
+                        <span class="text-2xl font-bold text-white">{{ score }}%</span>
+                        <span class="text-xs text-zinc-400">Score</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-1">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-zinc-800/50 p-4 rounded-lg" *ngFor="let stat of stats">
+                        <p class="text-sm text-zinc-400">{{ stat.label }}</p>
+                        <p class="text-xl font-semibold" 
+                           [class.text-emerald-500]="stat.label === 'Correct' || (stat.label === 'Status' && score >= passingScore)"
+                           [class.text-red-500]="stat.label === 'Incorrect' || (stat.label === 'Status' && score < passingScore)"
+                           [class.text-white]="stat.label === 'Total'">
+                            {{ stat.label === 'Status' ? (score >= passingScore ? 'Passed' : 'Failed') : stat.value }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Rest of your component remains the same -->
+        <div class="p-6">
+            <h2 class="text-lg font-semibold text-white mb-4">Question Review</h2>
+            <div class="space-y-6">
+                <div class="rounded-xl p-5 border" [ngClass]="{
+                    'bg-emerald-900/20 border-emerald-800/50': currentQuestion.isCorrect,
+                    'bg-red-900/20 border-red-800/50': !currentQuestion.isCorrect
+                }">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-medium text-white">Question {{ currentPage + 1 }}</h3>
+                            <p class="mt-1 text-zinc-300">{{ currentQuestion.text }}</p>
+                        </div>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="{
+                            'bg-emerald-900 text-emerald-100': currentQuestion.isCorrect,
+                            'bg-red-900 text-red-100': !currentQuestion.isCorrect
+                        }">
+                            {{ currentQuestion.isCorrect ? 'Correct' : 'Incorrect' }}
+                        </span>
+                    </div>
+                    
+                    <div class="mt-4 grid grid-cols-2 gap-2">
+                        <div *ngFor="let option of currentQuestion.options" 
+                            class="p-3 rounded-lg border" [ngClass]="{
+                                'bg-emerald-900/30 border-emerald-800/50': option.isCorrect,
+                                'bg-red-900/30 border-red-800/50': !option.isCorrect && currentQuestion.selectedOption === option.value && !currentQuestion.isCorrect,
+                                'bg-zinc-600/50 border-zinc-600': !option.isCorrect && (currentQuestion.isCorrect || currentQuestion.selectedOption !== option.value)
+                            }">
+                            <span [ngClass]="{
+                                'text-emerald-300 font-medium': option.isCorrect,
+                                'text-red-300 font-medium': !option.isCorrect && currentQuestion.selectedOption === option.value && !currentQuestion.isCorrect,
+                                'text-zinc-400': !option.isCorrect && (currentQuestion.isCorrect || currentQuestion.selectedOption !== option.value)
+                            }">
+                                {{ option.value }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex flex-row items-center mt-4 pt-4 border-t border-zinc-700/50">
+                        <p class="text-sm text-zinc-400">Correct Answer:  <span class="text-emerald-400 mt-1">
+                            {{ getCorrectAnswer() }}
+                        </span></p>
+                    </div>
+                     <p *ngIf="!currentQuestion.isCorrect" class="text-sm text-zinc-400 mt-1">
+                            You selected: <span class="text-red-400">{{ currentQuestion.selectedOption }}</span>
+                        </p>
+                </div>
+            </div>
+            <div class="mt-6 flex items-center justify-between">
+                <button (click)="prevQuestion()" 
+                        [disabled]="currentPage === 0"
+                        class="px-4 py-2 rounded-lg border border-zinc-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        [ngClass]="{
+                            'hover:bg-zinc-800/50': currentPage > 0,
+                            'cursor-not-allowed': currentPage === 0
+                        }">
+                    Previous
+                </button>
+                
+                <div class="flex space-x-2">
+                    <span *ngFor="let item of paginationItems; let i = index"
+                          (click)="goToPage(i)"
+                          class="w-8 h-8 flex items-center justify-center rounded-full text-sm font-medium cursor-pointer"
+                          [ngClass]="{
+                              'bg-indigo-600 text-white': currentPage === i,
+                              'bg-zinc-800/50 text-zinc-300 hover:bg-zinc-700': currentPage !== i
+                          }">
+                        {{ i + 1 }}
+                    </span>
+                </div>
+                
+                <button (click)="nextQuestion()" 
+                        [disabled]="currentPage === questions.length - 1"
+                        class="px-4 py-2 rounded-lg border border-zinc-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        [ngClass]="{
+                            'hover:bg-zinc-800/50': currentPage < questions.length - 1,
+                            'cursor-not-allowed': currentPage === questions.length - 1
+                        }">
+                    Next
+                </button>
+            </div>
+        </div>
+        <div class="p-4 bg-zinc-800/30 text-center text-sm text-zinc-500">
+            Completed on {{ completionDate | date:'M/d/yyyy, h:mm:ss a' }}
+        </div>
+    </div>
+</div>

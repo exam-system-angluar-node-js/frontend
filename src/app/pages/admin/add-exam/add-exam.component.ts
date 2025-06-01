@@ -1,7 +1,5 @@
 import { Component } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-
-import { ExamService, Exam } from '../../../services/exam.service';
+import { Router } from '@angular/router';
 import {
   ReactiveFormsModule,
   FormBuilder,
@@ -9,9 +7,14 @@ import {
   Validators,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ToastrService } from 'ngx-toastr';
+
+import { ExamService, Exam } from '../../../services/exam.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-add-exam',
+  standalone: true,
   imports: [ReactiveFormsModule, CommonModule, RouterLink],
   templateUrl: './add-exam.component.html',
   styleUrl: './add-exam.component.css',
@@ -22,21 +25,26 @@ export class AddExamComponent {
   constructor(
     private fb: FormBuilder,
     private examService: ExamService,
-    private router: Router
+    private router: Router,
+    private toastr: ToastrService
   ) {
     this.examForm = this.fb.group({
       title: ['', Validators.required],
       description: ['', Validators.required],
-      durration: [60, [Validators.required, Validators.min(1)]],
+      duration: [60, [Validators.required, Validators.min(1)]],
+      startDate: ['', Validators.required],
     });
   }
 
   onSubmit() {
-    if (this.examForm.invalid) return;
+    if (this.examForm.invalid) {
+      this.toastr.error('Please fill all required fields correctly', 'Error');
+      return;
+    }
 
     const authUserJson = localStorage.getItem('auth_user');
     if (!authUserJson) {
-      alert('User not found. Please log in again.');
+      this.toastr.error('User not found. Please log in again.', 'Error');
       return;
     }
 
@@ -44,21 +52,26 @@ export class AddExamComponent {
     const userId = authUser?.id;
 
     if (!userId) {
-      alert('User ID not found. Please log in again.');
+      this.toastr.error('User ID not found. Please log in again.', 'Error');
       return;
     }
 
     const examData: Exam = {
       ...this.examForm.value,
-      startDate: new Date(), //default
-      category: 'programming', // default
-      userId: userId,
-      status: 'pending', // default
+      userId,
+      status: 'pending',
+      category: 'programming', // Default category; can be dynamic later
     };
 
     this.examService.createExam(examData).subscribe({
-      next: () => this.router.navigate(['/teacher/manage']),
-      error: (err) => console.error('Error creating exam:', err),
+      next: () => {
+        this.toastr.success('Exam created successfully', 'Success');
+        this.router.navigate(['/teacher/manage']);
+      },
+      error: (err) => {
+        console.error('Error creating exam:', err);
+        this.toastr.error('Failed to create exam', 'Error');
+      },
     });
   }
 }

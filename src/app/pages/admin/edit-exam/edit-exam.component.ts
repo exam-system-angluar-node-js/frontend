@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { QuestionService, Question } from '../../../services/question.service'; // Update path
+import { QuestionService, Question } from '../../../services/question.service';
 import { ExamService } from '../../../services/exam.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-edit-exam',
@@ -28,7 +29,7 @@ export class EditExamComponent implements OnInit {
   questionText: string = '';
   choices: string[] = ['', '', '', ''];
   correctAnswer: number = 0;
-  points: number = 1; // Added points field
+  points: number = 1;
 
   // Questions list
   questions: Question[] = [];
@@ -37,7 +38,8 @@ export class EditExamComponent implements OnInit {
     private route: ActivatedRoute,
     private questionService: QuestionService,
     private examService: ExamService,
-    private router: Router
+    private router: Router,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
@@ -48,6 +50,7 @@ export class EditExamComponent implements OnInit {
   loadExamData(): void {
     this.isLoading = true;
     this.errorMessage = null;
+
     this.examService.getExamById(parseInt(this.examId)).subscribe({
       next: (exam) => {
         this.examTitle = exam.title;
@@ -57,7 +60,6 @@ export class EditExamComponent implements OnInit {
         this.questionService.getQuestions(parseInt(this.examId)).subscribe({
           next: (questions) => {
             console.log('questions', questions);
-
             this.questions = questions;
             this.isLoading = false;
           },
@@ -65,6 +67,7 @@ export class EditExamComponent implements OnInit {
             console.error('Failed to load questions', err);
             this.isLoading = false;
             this.errorMessage = 'Failed to load questions';
+            this.toastr.error('Failed to load questions', 'Error');
           },
         });
       },
@@ -72,6 +75,7 @@ export class EditExamComponent implements OnInit {
         console.error('Failed to load exam', err);
         this.isLoading = false;
         this.errorMessage = 'Failed to load exam details';
+        this.toastr.error('Failed to load exam details', 'Error');
       },
     });
   }
@@ -93,7 +97,7 @@ export class EditExamComponent implements OnInit {
 
   onQuestionSubmit(): void {
     if (!this.questionText || this.choices.some((choice) => !choice)) {
-      this.errorMessage = 'Please fill all question fields';
+      this.toastr.error('Please fill in all fields', 'Error');
       return;
     }
 
@@ -106,17 +110,27 @@ export class EditExamComponent implements OnInit {
     };
 
     if (this.editingQuestion) {
-      // Update existing question in the local array
+      // Update existing question
       const index = this.questions.findIndex(
         (q) => q.id === this.editingQuestion!.id
       );
       if (index !== -1) {
-        this.questions[index] = { ...this.questions[index], ...questionData };
+        this.questions[index] = {
+          ...this.questions[index],
+          ...questionData,
+          id: this.editingQuestion.id, // Preserve the ID
+        };
+        this.toastr.success('Question updated successfully', 'Success');
       }
       this.editingQuestion = null;
     } else {
-      // Just add locally
-      this.questions.push(questionData);
+      // Add new question - generate temporary ID for local state
+      const newQuestion: Question = {
+        ...questionData,
+        id: Math.max(0, ...this.questions.map((q) => q.id || 0)) + 1,
+      };
+      this.questions.push(newQuestion);
+      this.toastr.success('Question added successfully', 'Success');
     }
 
     // Reset form for next question
@@ -135,6 +149,7 @@ export class EditExamComponent implements OnInit {
   deleteQuestion(questionId: number): void {
     if (confirm('Are you sure you want to delete this question?')) {
       this.questions = this.questions.filter((q) => q.id !== questionId);
+      this.toastr.success('Question deleted successfully', 'Success');
     }
   }
 
@@ -149,23 +164,32 @@ export class EditExamComponent implements OnInit {
       .updateExam(parseInt(this.examId), examUpdatePayload)
       .subscribe({
         next: (updatedExam) => {
-          console.log(this.questions);
+          console.log('Exam updated, saving questions...', this.questions);
+
           this.questionService
             .addQuestions(parseInt(this.examId), this.questions)
             .subscribe({
               next: (res) => {
                 console.log('Questions saved', res);
-                this.router.navigate(['/teacher/manage']);
+                this.toastr.success(
+                  'Exam changes saved successfully',
+                  'Success'
+                );
 
-                // Optional: Show success message or navigate away
+                // Navigate back to manage page after successful save
+                setTimeout(() => {
+                  this.router.navigate(['/teacher/manage']);
+                }, 1500);
               },
               error: (err) => {
                 console.error('Failed to save questions', err);
+                this.toastr.error('Failed to save questions', 'Error');
               },
             });
         },
         error: (err) => {
           console.error('Failed to update exam', err);
+          this.toastr.error('Failed to update exam details', 'Error');
         },
       });
   }

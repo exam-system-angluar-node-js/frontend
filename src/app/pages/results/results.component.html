@@ -4,10 +4,14 @@
   >
     My Results
   </h1>
-  <app-lgcard
-    [completedAgo]="'2 hours ago'"
-    [questionsCount]="20"
-    [scoreText]="'16/20 (80%)'"
-    [title]="'HTML'"
+  @for (result of results; track $index) {
+      <app-lgcard
+    [completedAgo]="result.completedAgo"
+    [questionsCount]="result.questionsCount"
+    [scoreText]="result.scoreText"
+    [title]="result.title"
+    [scorePercent]="result.scorePercent"
+    [id]="result.id"
   />
+  }
 </div>

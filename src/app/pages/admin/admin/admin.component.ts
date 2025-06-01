@@ -1,4 +1,4 @@
-// admin.component.ts - Updated to include teacher name
+// admin.component.ts - Merged version with service integration and improved functionality
 import { Component, AfterViewInit, OnInit, OnDestroy } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
 import { FormsModule } from '@angular/forms';
@@ -254,7 +254,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     try {
-      // Create Results Chart (Doughnut)
+      // Create Results Chart (Enhanced Doughnut with better styling)
       const passRate = this.displayPassRate;
       const failRate = 100 - passRate;
 
@@ -267,15 +267,21 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
           datasets: [
             {
               data: [passRate, failRate],
-              backgroundColor: ['#10b981', '#ef4444'],
-              borderWidth: 0,
-              hoverOffset: 4,
+              backgroundColor: [
+                'rgba(16, 185, 129, 0.8)', // Green for passed
+                'rgba(239, 68, 68, 0.8)', // Red for failed
+              ],
+              borderColor: ['rgb(16, 185, 129)', 'rgb(239, 68, 68)'],
+              borderWidth: 2,
+              hoverOffset: 8,
+              hoverBorderWidth: 3,
             },
           ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          cutout: '70%',
           plugins: {
             legend: {
               position: 'bottom',
@@ -286,6 +292,8 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
                   weight: 'bold',
                 },
                 padding: 20,
+                usePointStyle: true,
+                pointStyle: 'circle',
               },
             },
             tooltip: {
@@ -311,11 +319,12 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
           animation: {
             animateScale: true,
             animateRotate: true,
+            duration: 1000,
           },
         },
       });
 
-      // Create Activity Chart (Line)
+      // Create Activity Chart (Enhanced Line Chart with better styling)
       const activityData = this.generateActivityData();
       console.log('Creating activity chart with data:', activityData);
 
@@ -327,21 +336,27 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
             {
               label: 'Exam Attempts',
               data: activityData,
-              borderColor: '#8b5cf6',
-              backgroundColor: 'rgba(139, 92, 246, 0.1)',
+              borderColor: 'rgb(99, 102, 241)',
+              backgroundColor: 'rgba(99, 102, 241, 0.1)',
               tension: 0.4,
               fill: true,
-              pointBackgroundColor: '#8b5cf6',
+              pointBackgroundColor: 'rgb(99, 102, 241)',
               pointBorderColor: '#fff',
-              pointBorderWidth: 2,
-              pointRadius: 4,
-              pointHoverRadius: 6,
+              pointBorderWidth: 3,
+              pointRadius: 5,
+              pointHoverRadius: 8,
+              pointHoverBorderWidth: 4,
+              borderWidth: 3,
             },
           ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          interaction: {
+            intersect: false,
+            mode: 'index',
+          },
           plugins: {
             legend: {
               display: false,
@@ -357,13 +372,17 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
                 size: 13,
               },
               cornerRadius: 8,
+              callbacks: {
+                label: (context) =>
+                  `${context.dataset.label}: ${context.raw} attempts`,
+              },
             },
           },
           scales: {
             y: {
               beginAtZero: true,
               grid: {
-                color: 'rgba(0, 0, 0, 0.1)',
+                color: 'rgba(0, 0, 0, 0.05)',
                 display: true,
               },
               ticks: {
@@ -372,6 +391,16 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
                   size: 12,
                 },
                 padding: 10,
+              },
+              title: {
+                display: true,
+                text: 'Number of Attempts',
+                font: {
+                  size: 14,
+                  weight: 'bold',
+                },
+                color: '#4b5563',
+                padding: { top: 10, bottom: 10 },
               },
             },
             x: {
@@ -459,6 +488,25 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   // Helper methods for template
   get totalQuestions(): number {
     return this.dashboardStats?.totalQuestions || 0;
+  }
+
+  get averageScore(): number {
+    if (this.examResults.length === 0) return 0;
+
+    if (this.selectedExam) {
+      return this.selectedExam.averageScore || 0;
+    }
+
+    return Math.round(
+      this.examResults.reduce(
+        (sum, exam) => sum + (exam.averageScore || 0),
+        0
+      ) / this.examResults.length
+    );
+  }
+
+  get totalStudents(): number {
+    return this.dashboardStats?.totalStudents || 0;
   }
 
   get displayPassRate(): number {
