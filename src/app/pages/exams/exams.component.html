@@ -4,17 +4,20 @@
   >
     Available Exams
   </h1>
+
+  <!-- Search and Filter Controls -->
   <div class="flex flex-col sm:flex-row justify-between gap-4 mb-8">
     <input
       (input)="handleSearch($event)"
       type="text"
       placeholder="Search exams..."
-      class="w-full sm:w-80 px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none transition"
+      [disabled]="loading"
+      class="w-full sm:w-80 px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none transition disabled:opacity-50 disabled:cursor-not-allowed"
     />
     <select
-      #category
       (change)="handleCategoryChange($event)"
-      class="w-full sm:w-56 px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none transition"
+      [disabled]="loading"
+      class="w-full sm:w-56 px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none transition disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <option value="all">All Subjects</option>
       <option value="frontend">Front-End</option>
@@ -22,7 +25,60 @@
       <option value="database">Database</option>
     </select>
   </div>
-  @if(exams.length == 0) {
+
+  <!-- Loading State -->
+  @if (loading) {
+  <div class="flex flex-col items-center justify-center p-12">
+    <div class="relative">
+      <div
+        class="w-16 h-16 border-4 border-purple-200 dark:border-purple-800 rounded-full animate-spin"
+      ></div>
+      <div
+        class="absolute top-0 left-0 w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"
+      ></div>
+    </div>
+    <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-400">
+      Loading exams...
+    </p>
+  </div>
+  }
+
+  <!-- Error State -->
+  @else if (error) {
+  <div class="flex flex-col items-center justify-center p-8 text-center">
+    <div class="relative w-24 h-24 mb-6">
+      <svg
+        class="w-full h-full text-red-400 dark:text-red-500"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+        ></path>
+      </svg>
+    </div>
+    <h3 class="text-2xl font-bold text-red-600 dark:text-red-400 mb-2">
+      Error Loading Exams
+    </h3>
+    <p class="text-gray-600 dark:text-gray-300 max-w-md mb-6">
+      {{ error }}
+    </p>
+    <button
+      (click)="retryLoading()"
+      class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200"
+    >
+      Try Again
+    </button>
+  </div>
+  }
+
+  <!-- No Exams Available -->
+  @else if (exams.length === 0) {
   <div class="flex flex-col items-center justify-center p-8 text-center">
     <div class="relative w-48 h-48 mb-6">
       <div
@@ -65,20 +121,55 @@
       ></div>
     </div>
   </div>
-  }@else {
+  }
+
+  <!-- No Filtered Results -->
+  @else if (filteredExams.length === 0) {
+  <div class="flex flex-col items-center justify-center p-8 text-center">
+    <div class="relative w-32 h-32 mb-6">
+      <svg
+        class="w-full h-full text-gray-400 dark:text-gray-500"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+        ></path>
+      </svg>
+    </div>
+    <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-2">
+      No Results Found
+    </h3>
+    <p class="text-gray-600 dark:text-gray-300 max-w-md">
+      No exams match your current search and filter criteria. Try adjusting your
+      search terms or category selection.
+    </p>
+  </div>
+  }
+
+  <!-- Exams Grid -->
+  @else {
   <div
     class="grid justify-center sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
   >
-    @for (exam of filteredExams; track $index) {
+    @for (exam of filteredExams; track exam.id) {
     <app-card
       [id]="exam.id"
       [title]="exam.title"
       [description]="exam.description"
       [category]="exam.category"
       [questionsCount]="exam.questionsCount"
-      [creationDateInput]="exam.creationDateInput"
       [instructorName]="exam.instructorName"
-    />
+      [creationDateInput]="exam.creationDateInput"
+      [duration]="exam.duration ?? 0"
+      [manage]="false"
+    >
+    </app-card>
     }
   </div>
   }

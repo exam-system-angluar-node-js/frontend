@@ -1,17 +1,21 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DataService } from '../../services/data.service';
+import { DataService, ExamData } from '../../services/data.service';
+import { QuestionService, Question } from '../../services/question.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { FocusModeService } from '../../services/focus-mode.service';
+import { AuthService } from '../../services/auth.service';
 
-interface Question {
-  id: number;
-  text: string;
-  choices: string[];
-  correctAnswer: number;
+interface ExamQuestion {
+  id?: number;
+  title: string;
+  options: string[];
+  points: number;
+  answer: number;
+  examId: number;
 }
 
 @Component({
@@ -19,48 +23,28 @@ interface Question {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './exam-start.component.html',
-  styleUrl: './exam-start.component.css'
+  styleUrl: './exam-start.component.css',
 })
 export class ExamStartComponent implements OnInit, OnDestroy {
   examId: string | null = null;
+  resultId: number | null = null;
   currentQuestionIndex = 0;
-  timeLeft = 45 * 60; // 45 minutes in seconds
-  totalTime = 45 * 60; // Store total time for progress calculation
+  timeLeft = 45 * 60;
+  totalTime = 45 * 60;
   timerInterval: any;
-  answers: number[] = [];
+  answers: { [questionId: number]: number } = {};
   isLoading = true;
   error = false;
-  exam: any = null;
-  progressPercentage = 100; // Add progress percentage property
+  exam: ExamData | null = null;
+  progressPercentage = 100;
+  userRole: string | null = null;
 
-  // Sample questions (replace with actual questions from your backend)
-  questions: Question[] = [
-    {
-      id: 1,
-      text: 'What is the correct way to declare a variable in JavaScript?',
-      choices: ['var x = 5;', 'variable x = 5;', 'v x = 5;', 'let x = 5;'],
-      correctAnswer: 3,
-    },
-    {
-      id: 2,
-      text: 'Which of the following is not a JavaScript data type?',
-      choices: ['String', 'Boolean', 'Float', 'Object'],
-      correctAnswer: 2,
-    },
-    {
-      id: 3,
-      text: 'What does HTML stand for?',
-      choices: [
-        'Hyper Text Markup Language',
-        'High Tech Modern Language',
-        'Hyper Transfer Markup Language',
-        'Hyper Text Modern Language'
-      ],
-      correctAnswer: 0,
-    }
-  ];
+  questions: ExamQuestion[] = [];
+  questionsLoaded = false;
 
   private dataSubscription!: Subscription;
+  private examSubscription!: Subscription;
+  private questionsSubscription!: Subscription;
   private keydownListener: any;
   private contextMenuListener: any;
 
@@ -68,50 +52,264 @@ export class ExamStartComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private dataService: DataService,
+    private questionService: QuestionService,
     private toastr: ToastrService,
-    private focusModeService: FocusModeService
-  ) { }
+    private focusModeService: FocusModeService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.focusModeService.setFocusMode(true);
-    this.toastr.info('You are now in Focus Mode. All distractions are disabled.', 'Focus Mode');
+    this.toastr.info(
+      'You are now in Focus Mode. All distractions are disabled.',
+      'Focus Mode'
+    );
     this.disableKeydown();
     this.disableContextMenu();
     this.enterFullscreen();
+
+    this.userRole = this.authService.getUserRole();
     this.examId = this.route.snapshot.paramMap.get('id');
-    this.dataSubscription = this.dataService.currentData.subscribe({
-      next: (data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          this.exam = data[0];
-          this.isLoading = false;
-          this.startTimer();
-          // Initialize answers array
-          this.answers = new Array(this.questions.length).fill(-1);
-        } else {
-          this.error = true;
-          this.isLoading = false;
-        }
+
+    if (this.examId) {
+      this.startExam();
+    } else {
+      this.handleError();
+    }
+  }
+
+  // private startExam(): void {
+  //   const examId = parseInt(this.examId!);
+
+  //   if (this.userRole === 'student') {
+  //     this.examSubscription = this.dataService.takeExam(examId).subscribe({
+  //       next: (response: any) => {
+  //         console.log('Take exam response:', response);
+
+  //         this.resultId = response.resultId;
+  //         this.exam = response.exam;
+
+  //         // Check if questions are included in the response
+  //         if (
+  //           response.exam &&
+  //           response.exam.questions &&
+  //           response.exam.questions.length > 0
+  //         ) {
+  //           this.questions = response.exam.questions.map((q: any) => ({
+  //             id: q.id,
+  //             title: q.title,
+  //             options: q.options,
+  //             points: q.points,
+  //             answer: q.answer,
+  //             examId: q.examId,
+  //           }));
+  //           this.questionsLoaded = true;
+  //           this.setExamDuration();
+  //           this.initializeExam();
+  //         } else {
+  //           // If questions are not included, fetch them separately
+  //           console.log(
+  //             'Questions not included in takeExam response, fetching separately...'
+  //           );
+  //           this.setExamDuration();
+  //           this.loadQuestions(examId);
+  //         }
+  //       },
+  //       error: (err: any) => {
+  //         console.error('Error starting exam:', err);
+  //         if (err.status === 403) {
+  //           this.toastr.error(
+  //             'You have already taken this exam or it is not available yet',
+  //             'Access Denied'
+  //           );
+  //         } else {
+  //           this.toastr.error('Failed to start exam', 'Error');
+  //         }
+  //         this.handleError();
+  //       },
+  //     });
+  //   } else {
+  //     // For non-student users (instructors, etc.)
+  //     this.dataService.getExamById(examId).subscribe({
+  //       next: (exam: ExamData) => {
+  //         this.exam = exam;
+  //         this.setExamDuration();
+  //         this.loadQuestions(examId);
+  //       },
+  //       error: (err: any) => {
+  //         console.error('Error fetching exam:', err);
+  //         this.handleError();
+  //       },
+  //     });
+  //   }
+  // }
+
+  private startExam(): void {
+    const examId = parseInt(this.examId!);
+
+    if (this.userRole === 'student') {
+      this.examSubscription = this.dataService.takeExam(examId).subscribe({
+        next: (response: any) => {
+          console.log('Take exam response:', response);
+
+          this.resultId = response.resultId;
+
+          // Fix: Check if exam exists in response, if not fetch it separately
+          if (response.exam) {
+            this.exam = response.exam;
+
+            // Check if questions are included in the response
+            if (response.exam.questions && response.exam.questions.length > 0) {
+              this.questions = response.exam.questions.map((q: any) => ({
+                id: q.id,
+                title: q.title,
+                options: q.options,
+                points: q.points,
+                answer: q.answer,
+                examId: q.examId,
+              }));
+              this.questionsLoaded = true;
+              this.setExamDuration();
+              this.initializeExam();
+            } else {
+              // Questions not included, fetch them separately
+              console.log(
+                'Questions not included in takeExam response, fetching separately...'
+              );
+              this.setExamDuration();
+              this.loadQuestions(examId);
+            }
+          } else {
+            // Exam data not included in takeExam response, fetch exam data first
+            console.log(
+              'Exam data not included in takeExam response, fetching exam data...'
+            );
+            this.dataService.getExamById(examId).subscribe({
+              next: (exam: ExamData) => {
+                this.exam = exam;
+                this.setExamDuration();
+                this.loadQuestions(examId);
+              },
+              error: (err: any) => {
+                console.error('Error fetching exam data:', err);
+                this.handleError();
+              },
+            });
+          }
+        },
+        error: (err: any) => {
+          console.error('Error starting exam:', err);
+          if (err.status === 403) {
+            this.toastr.error(
+              'You have already taken this exam or it is not available yet',
+              'Access Denied'
+            );
+          } else {
+            this.toastr.error('Failed to start exam', 'Error');
+          }
+          this.handleError();
+        },
+      });
+    } else {
+      // For non-student users (instructors, etc.)
+      this.dataService.getExamById(examId).subscribe({
+        next: (exam: ExamData) => {
+          this.exam = exam;
+          this.setExamDuration();
+          this.loadQuestions(examId);
+        },
+        error: (err: any) => {
+          console.error('Error fetching exam:', err);
+          this.handleError();
+        },
+      });
+    }
+  }
+
+  private loadQuestions(examId: number): void {
+    this.questionsSubscription = this.questionService
+      .getQuestions(examId)
+      .subscribe({
+        next: (questions: Question[]) => {
+          console.log('Loaded questions:', questions);
+          this.questions = questions.map((q) => ({
+            id: q.id,
+            title: q.title,
+            options: q.options,
+            points: q.points,
+            answer: q.answer,
+            examId: q.examId,
+          }));
+          this.questionsLoaded = true;
+          this.initializeExam();
+        },
+        error: (err: any) => {
+          console.error('Error fetching questions:', err);
+          this.toastr.error('Failed to load exam questions', 'Error');
+          this.handleError();
+        },
+      });
+  }
+
+  private setExamDuration(): void {
+    if (this.exam?.duration) {
+      this.timeLeft = this.exam.duration * 60;
+      this.totalTime = this.exam.duration * 60;
+      console.log(
+        `Exam duration set to: ${this.exam.duration} minutes (${this.timeLeft} seconds)`
+      );
+    }
+    this.progressPercentage = 100;
+  }
+
+  private initializeExam(): void {
+    console.log('Initializing exam...');
+    console.log('Exam:', this.exam);
+    console.log('Questions loaded:', this.questionsLoaded);
+    console.log('Questions count:', this.questions.length);
+
+    if (!this.exam || !this.questionsLoaded || this.questions.length === 0) {
+      console.log('Cannot initialize exam - missing data');
+      return;
+    }
+
+    this.isLoading = false;
+    this.error = false;
+    this.answers = {};
+    this.startTimer();
+    console.log('Exam initialized successfully');
+  }
+
+  submitExam(): void {
+    if (!this.resultId) {
+      this.toastr.error('Invalid exam session', 'Error');
+      return;
+    }
+
+    if (this.timerInterval) clearInterval(this.timerInterval);
+
+    this.dataService.submitExam(this.resultId, this.answers).subscribe({
+      next: () => {
+        this.toastr.success('Exam submitted successfully!', 'Success');
+        this.focusModeService.setFocusMode(false);
+        this.enableKeydown();
+        this.enableContextMenu();
+        this.exitFullscreen();
+        this.router.navigate(['/student/results', this.examId]);
       },
-      error: (err) => {
-        console.error('Error loading exam:', err);
-        this.error = true;
-        this.isLoading = false;
-        this.toastr.error('Failed to load exam', 'Error');
-      }
+      error: (err: any) => {
+        console.error('Error submitting exam:', err);
+        this.toastr.error('Failed to submit exam', 'Error');
+      },
     });
   }
 
-  ngOnDestroy(): void {
-    this.focusModeService.setFocusMode(false);
-    this.enableKeydown();
-    this.enableContextMenu();
-    this.exitFullscreen();
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-    }
-    if (this.dataSubscription) {
-      this.dataSubscription.unsubscribe();
-    }
+  handleError(): void {
+    this.isLoading = false;
+    this.error = true;
+    this.exam = null;
+    this.questions = [];
+    this.answers = {};
   }
 
   startTimer(): void {
@@ -128,7 +326,36 @@ export class ExamStartComponent implements OnInit, OnDestroy {
   formatTime(): string {
     const minutes = Math.floor(this.timeLeft / 60);
     const seconds = this.timeLeft % 60;
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    return `${minutes.toString().padStart(2, '0')}:${seconds
+      .toString()
+      .padStart(2, '0')}`;
+  }
+
+  get answeredCount(): number {
+    return Object.keys(this.answers).length;
+  }
+
+  get allQuestionsAnswered(): boolean {
+    return this.answeredCount === this.questions.length;
+  }
+
+  get submitButtonClass(): string {
+    return (
+      'px-8 py-3 rounded-lg font-medium transition-colors ' +
+      (this.allQuestionsAnswered
+        ? 'bg-green-600 text-white hover:bg-green-700'
+        : 'bg-orange-600 text-white hover:bg-orange-700')
+    );
+  }
+
+  getCurrentQuestionAnswer(): number {
+    const questionId = this.questions[this.currentQuestionIndex]?.id;
+    return questionId ? this.answers[questionId] ?? -1 : -1;
+  }
+
+  setCurrentQuestionAnswer(answerIndex: number): void {
+    const questionId = this.questions[this.currentQuestionIndex]?.id;
+    if (questionId) this.answers[questionId] = answerIndex;
   }
 
   goToQuestion(index: number): void {
@@ -137,37 +364,34 @@ export class ExamStartComponent implements OnInit, OnDestroy {
     }
   }
 
-  submitExam(): void {
-    // Calculate score
-    const score = this.answers.reduce((total, answer, index) => {
-      return total + (answer === this.questions[index].correctAnswer ? 1 : 0);
-    }, 0);
-
-    const percentage = (score / this.questions.length) * 100;
-
-    // TODO: Send results to backend
-    console.log('Exam submitted', {
-      examId: this.examId,
-      score: percentage,
-      answers: this.answers,
-    });
-
-    this.toastr.success('Exam submitted successfully!', 'Success');
+  navigateToExams(): void {
     this.focusModeService.setFocusMode(false);
     this.enableKeydown();
     this.enableContextMenu();
     this.exitFullscreen();
-    // Navigate to results page
-    this.router.navigate(['/student/results', this.examId]);
+    this.router.navigate(['/student/exams']);
   }
 
-  navigateToExams(): void {
-    this.router.navigate(['/student/exams']);
+  ngOnDestroy(): void {
+    this.focusModeService.setFocusMode(false);
+    this.enableKeydown();
+    this.enableContextMenu();
+    this.exitFullscreen();
+
+    if (this.timerInterval) clearInterval(this.timerInterval);
+    if (this.dataSubscription) this.dataSubscription.unsubscribe();
+    if (this.examSubscription) this.examSubscription.unsubscribe();
+    if (this.questionsSubscription) this.questionsSubscription.unsubscribe();
   }
 
   disableKeydown(): void {
     this.keydownListener = (event: KeyboardEvent) => {
-      if (event.key === 'Tab' || event.key === 'F12' || event.ctrlKey || event.altKey || event.metaKey) {
+      if (
+        ['Tab', 'F12'].includes(event.key) ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.altKey
+      ) {
         event.preventDefault();
         return false;
       }
@@ -200,22 +424,18 @@ export class ExamStartComponent implements OnInit, OnDestroy {
 
   enterFullscreen(): void {
     const elem = document.documentElement;
-    if (elem.requestFullscreen) {
-      elem.requestFullscreen();
-    } else if ((elem as any).webkitRequestFullscreen) {
+    if (elem.requestFullscreen) elem.requestFullscreen();
+    else if ((elem as any).webkitRequestFullscreen)
       (elem as any).webkitRequestFullscreen();
-    } else if ((elem as any).msRequestFullscreen) {
+    else if ((elem as any).msRequestFullscreen)
       (elem as any).msRequestFullscreen();
-    }
   }
 
   exitFullscreen(): void {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    } else if ((document as any).webkitExitFullscreen) {
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if ((document as any).webkitExitFullscreen)
       (document as any).webkitExitFullscreen();
-    } else if ((document as any).msExitFullscreen) {
+    else if ((document as any).msExitFullscreen)
       (document as any).msExitFullscreen();
-    }
   }
-} 
+}

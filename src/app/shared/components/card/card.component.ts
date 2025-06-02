@@ -36,6 +36,7 @@ export class CardComponent implements OnInit {
   @Input() creationDateInput: string | Date = new Date();
   @Input() manage: boolean = false;
   @Input() userRole: string = 'teacher'; // Default to teacher, can be 'admin' or 'teacher'
+  @Input() duration: number = 45; // Add this to CardComponent inputs
 
   @Output() delete = new EventEmitter();
 
@@ -71,12 +72,33 @@ export class CardComponent implements OnInit {
   }
 
   sendExams() {
-    const currentExam = this.exams.find((exam) => exam.id === this.id);
-    if (currentExam) {
-      this.dataService.changeData([currentExam]);
+    // Create current exam object from component inputs
+    const currentExam = {
+      id: this.id,
+      title: this.title,
+      description: this.description,
+      questionsCount: this.questionsCount,
+      category: this.category,
+      creationDateInput: this.convertToDate(this.creationDateInput),
+      instructorName: this.instructorName,
+      // Add duration if available from parent component
+      duration: this.duration || 45, // Default to 45 minutes if not provided
+    };
+
+    console.log('Sending exam data to service:', currentExam);
+
+    // Send the current exam data to the service
+    this.dataService.changeData([currentExam]);
+  }
+
+  // Helper method to convert string | Date to Date
+  private convertToDate(dateInput: string | Date): Date {
+    if (dateInput instanceof Date) {
+      return dateInput;
     }
-    // Additional logic for viewing exams
-    console.log('Viewing exam:', this.id);
+    const convertedDate = new Date(dateInput);
+    // Return current date if conversion fails
+    return isNaN(convertedDate.getTime()) ? new Date() : convertedDate;
   }
 
   onDelete(): void {

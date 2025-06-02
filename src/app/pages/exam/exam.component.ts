@@ -1,6 +1,12 @@
-import { Component, OnDestroy, OnInit, Output, EventEmitter } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  Output,
+  EventEmitter,
+} from '@angular/core';
 import { CardComponent } from '../../shared/components/card/card.component';
-import { DataService } from '../../services/data.service';
+import { DataService, ExamData } from '../../services/data.service';
 import { Subscription } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -30,17 +36,19 @@ interface Exam {
 })
 export class ExamComponent implements OnInit, OnDestroy {
   exams: Exam[] = [];
-  filterdExam: Exam | null = null;
+  filterdExam: ExamData | null = null;
   dataSubscription!: Subscription;
+  examSubscription!: Subscription;
   path!: string | null;
   isLoading = true;
   error = false;
 
   // Exam state
   currentQuestionIndex = 0;
-  timeLeft = 45 * 60; // 45 minutes in seconds
+  timeLeft = 0; // Will be set from exam data
   timerInterval: any;
   answers: number[] = [];
+  examDurationMinutes = 45; // Default fallback
 
   // Sample questions (replace with actual questions from your backend)
   questions: Question[] = [
@@ -57,39 +65,95 @@ export class ExamComponent implements OnInit, OnDestroy {
     private dataService: DataService,
     private route: ActivatedRoute,
     private router: Router
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.path = this.route.snapshot.paramMap.get('id');
-    this.dataSubscription = this.dataService.currentData.subscribe({
-      next: (exams) => {
-        if (Array.isArray(exams) && exams.length > 0) {
-          this.exams = exams;
-          const foundExam = this.exams.find((exam) => exam.id === Number(this.path));
-          this.filterdExam = foundExam || null;
-          this.isLoading = false;
-          if (!this.filterdExam) {
-            this.error = true;
+    console.log('Exam ID from route:', this.path);
+
+    if (this.path) {
+      // First, try to get data from the shared service (from card component)
+      this.dataSubscription = this.dataService.currentData.subscribe({
+        next: (exams: ExamData[]) => {
+          console.log('Received exams from service:', exams);
+
+          if (exams && exams.length > 0) {
+            // Find the exam with matching ID
+            const examId = parseInt(this.path!);
+            this.filterdExam = exams.find((exam) => exam.id === examId) || null;
+
+            if (this.filterdExam) {
+              console.log('Found exam from shared data:', this.filterdExam);
+              this.setExamDuration();
+              this.isLoading = false;
+              this.error = false;
+            } else {
+              // If not found in shared data, fetch from API
+              this.fetchExamById(examId);
+            }
+          } else {
+            // No shared data, fetch from API
+            const examId = parseInt(this.path!);
+            this.fetchExamById(examId);
           }
-        } else {
-          this.error = true;
-          this.isLoading = false;
-        }
-      },
-      error: (err) => {
-        console.error('Error loading exam:', err);
-        this.error = true;
-        this.isLoading = false;
-      },
-    });
+        },
+        error: (err: any) => {
+          console.error('Error in exams subscription:', err);
+          this.handleError();
+        },
+      });
+    } else {
+      this.handleError();
+    }
 
     // Initialize answers array
     this.answers = new Array(this.questions.length).fill(-1);
   }
 
+  private fetchExamById(examId: number): void {
+    console.log('Fetching exam by ID:', examId);
+
+    this.examSubscription = this.dataService.getExamById(examId).subscribe({
+      next: (exam: ExamData) => {
+        console.log('Fetched exam from API:', exam);
+        this.filterdExam = exam;
+        this.setExamDuration();
+        this.isLoading = false;
+        this.error = false;
+      },
+      error: (err: any) => {
+        console.error('Error fetching exam by ID:', err);
+        this.handleError();
+      },
+    });
+  }
+
+  private handleError(): void {
+    this.isLoading = false;
+    this.error = true;
+    this.filterdExam = null;
+  }
+
+  private setExamDuration(): void {
+    if (this.filterdExam && this.filterdExam.duration) {
+      this.examDurationMinutes = this.filterdExam.duration;
+      this.timeLeft = this.filterdExam.duration * 60; // Convert minutes to seconds
+    } else {
+      // Fallback to default 45 minutes if no duration specified
+      this.examDurationMinutes = 45;
+      this.timeLeft = 45 * 60;
+    }
+    console.log(
+      `Exam duration set to: ${this.examDurationMinutes} minutes (${this.timeLeft} seconds)`
+    );
+  }
+
   ngOnDestroy(): void {
     if (this.dataSubscription) {
       this.dataSubscription.unsubscribe();
+    }
+    if (this.examSubscription) {
+      this.examSubscription.unsubscribe();
     }
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
@@ -109,7 +173,9 @@ export class ExamComponent implements OnInit, OnDestroy {
   formatTime(): string {
     const minutes = Math.floor(this.timeLeft / 60);
     const seconds = this.timeLeft % 60;
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    return `${minutes.toString().padStart(2, '0')}:${seconds
+      .toString()
+      .padStart(2, '0')}`;
   }
 
   selectAnswer(choiceIndex: number): void {
@@ -150,8 +216,11 @@ export class ExamComponent implements OnInit, OnDestroy {
     });
   }
 
+  // In your exam component
   startExam(): void {
     if (this.filterdExam) {
+      // Pass the exam data to the service before navigation
+      // this.dataService.setCurrentExam(this.filterdExam);
       this.router.navigate(['/student/exams', this.path, 'start']);
     }
   }
@@ -161,31 +230,3 @@ export class ExamComponent implements OnInit, OnDestroy {
     this.router.navigate(['/student/exams']);
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
