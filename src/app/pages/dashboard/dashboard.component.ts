@@ -11,6 +11,7 @@ import {
   CategoryPerformance,
 } from '../../services/data.service';
 import { finalize } from 'rxjs/operators';
+import { AuthService } from '../../services/auth.service';
 
 Chart.register(...registerables);
 
@@ -25,7 +26,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   isLoading = true;
   hasError = false;
   errorMessage = '';
-
+  currentUser: any = null;
+  studentName: string = 'Student';
   stats: StudentDashboardStats = {
     totalExams: 0,
     completedExams: 0,
@@ -40,12 +42,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private performanceChart: Chart | null = null;
   private categoryChart: Chart | null = null;
 
-  constructor(private dataService: DataService) {}
+  constructor(private dataService: DataService,private authService: AuthService) {
+    this.initializeUserInfo();
+  }
 
   ngOnInit() {
     this.loadDashboardData();
   }
 
+    private initializeUserInfo(): void {
+    this.currentUser = this.authService.currentUserValue;
+    if (this.currentUser && this.currentUser.name) {
+      this.studentName = this.currentUser.name;
+    }
+    console.log('Current user:', this.currentUser);
+    console.log('Teacher name:', this.studentName);
+  }
   ngOnDestroy() {
     this.performanceChart?.destroy();
     this.categoryChart?.destroy();

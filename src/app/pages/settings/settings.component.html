@@ -31,17 +31,17 @@
       <div class="flex flex-col space-y-3 sm:space-y-4">
         <div class="flex flex-col">
           <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Username</label>
-          <input type="text" [(ngModel)]="profileData.username"
+          <input type="text" [(ngModel)]="userDetails.name"
             class="flex-1 bg-zinc-800 border border-zinc-600 text-white text-sm rounded-lg focus:ring-4 focus:ring-gray-300 block w-full p-2 sm:p-2.5 placeholder-gray-400">
         </div>
         <div class="flex flex-col">
           <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Full Name</label>
-          <input type="text" [(ngModel)]="profileData.fullName"
+          <input type="text" [(ngModel)]="userDetails.name"
             class="flex-1 bg-zinc-800 border border-zinc-600 text-white text-sm rounded-lg focus:ring-4 focus:ring-gray-300 block w-full p-2 sm:p-2.5 placeholder-gray-400">
         </div>
         <div class="flex flex-col">
           <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">Email address</label>
-          <input type="email" [(ngModel)]="profileData.email"
+          <input type="email" [(ngModel)]="userDetails.email"
             class="flex-1 bg-zinc-800 border border-zinc-600 text-gray-400 text-sm rounded-lg block w-full p-2 sm:p-2.5 cursor-not-allowed focus:ring-4 focus:ring-gray-300"
             disabled>
         </div>

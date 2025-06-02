@@ -56,18 +56,9 @@ export class ExamStartComponent implements OnInit, OnDestroy {
     private toastr: ToastrService,
     private focusModeService: FocusModeService,
     private authService: AuthService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-    this.focusModeService.setFocusMode(true);
-    this.toastr.info(
-      'You are now in Focus Mode. All distractions are disabled.',
-      'Focus Mode'
-    );
-    this.disableKeydown();
-    this.disableContextMenu();
-    this.enterFullscreen();
-
     this.userRole = this.authService.getUserRole();
     this.examId = this.route.snapshot.paramMap.get('id');
 
@@ -168,6 +159,14 @@ export class ExamStartComponent implements OnInit, OnDestroy {
                 answer: q.answer,
                 examId: q.examId,
               }));
+              this.focusModeService.setFocusMode(true);
+              this.toastr.info(
+                'You are now in Focus Mode. All distractions are disabled.',
+                'Focus Mode'
+              );
+              this.disableKeydown();
+              this.disableContextMenu();
+              this.enterFullscreen();
               this.questionsLoaded = true;
               this.setExamDuration();
               this.initializeExam();

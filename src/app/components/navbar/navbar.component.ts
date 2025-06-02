@@ -11,7 +11,7 @@ export class NavbarComponent implements OnInit {
   @ViewChild('dropdown') dropdown!: ElementRef;
   queryPath!: string;
   isDropdownOpen = false;
-
+  @Input() userDetails: any
   constructor(private route: ActivatedRoute) {}
 
   @Input() isSidebarOpen = false;

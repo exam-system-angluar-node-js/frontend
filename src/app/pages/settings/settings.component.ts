@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-settings',
   imports: [CommonModule, FormsModule],
@@ -17,17 +18,24 @@ export class SettingsComponent {
 
   isDeleting = false;
   profileData = {
-    username: 'gendyvip',
-    fullName: 'Mohamed Elgendy',
-    email: 'gendyisvip@gmail.com',
     avatar: 'https://flowbite.com/docs/images/people/profile-picture-5.jpg'
   };
 
   avatarPreview: SafeUrl;
   showDeleteConfirmation = false;
-
-  constructor(private sanitizer: DomSanitizer) {
+  currentUser:any = null;
+  userDetails:any = null;
+  constructor(private sanitizer: DomSanitizer,private authService:AuthService) {
     this.avatarPreview = this.sanitizer.bypassSecurityTrustUrl(this.profileData.avatar);
+    this.initializeUserInfo();
+
+  }
+
+    private initializeUserInfo(): void {
+    this.currentUser = this.authService.currentUserValue;
+    if (this.currentUser) {
+      this.userDetails = this.currentUser;
+    }
   }
 
   onFileSelected(event: Event): void {
@@ -46,13 +54,13 @@ export class SettingsComponent {
   
   saveChanges(): void {
     // Implement save logic
-    console.log('Profile updated:', this.profileData);
+    console.log('Profile updated:', this.userDetails);
     alert('Profile changes saved!');
   }
 
   // Delete Account Validation
   canDelete(): boolean {
-    return this.deleteData.email === this.profileData.email && 
+    return this.deleteData.email === this.userDetails.email && 
            this.deleteData.confirmation.toUpperCase() === 'DELETE';
   }
 
