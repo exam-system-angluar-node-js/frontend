@@ -1,90 +1,246 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { DataService } from '../../services/data.service';
+import { Subscription } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
+
+interface ExamResultData {
+  id: number;
+  examTitle: string;
+  examDescription: string;
+  score: number;
+  totalPoints: number;
+  passed: boolean;
+  correctAnswers: number;
+  incorrectAnswers: number;
+  totalQuestions: number;
+  completionDate: string;
+  questions: ResultQuestion[];
+}
+
+interface ResultQuestion {
+  id: number;
+  title: string;
+  options: string[];
+  correctAnswer: number;
+  userAnswer: number;
+  isCorrect: boolean;
+  points: number;
+}
 
 @Component({
   selector: 'app-result',
   imports: [CommonModule],
   templateUrl: './result.component.html',
-  styleUrl: './result.component.css'
+  styleUrl: './result.component.css',
 })
-export class ResultComponent {
-  score =67;
-  passingScore = 50; // Set your passing threshold here
-  completionDate = new Date('2023-04-16T13:45:00');
+export class ResultComponent implements OnInit, OnDestroy {
+  examId: string | null = null;
+  resultData: ExamResultData | null = null;
+  isLoading = true;
+  error = false;
+  errorMessage = '';
+
+  // UI state
   currentPage = 0;
   paginationItems: any[] = [];
 
-  stats = [
-    { label: 'Correct', value: 2 },
-    { label: 'Incorrect', value: 1 },
-    { label: 'Total', value: 3 },
-    { label: 'Status', value: this.completionDate.toLocaleDateString() }
-  ];
-  questions = [
-    {
-      title: 'Question 1',
-      text: 'What is the value of x in the equation 2x + 5 = 15?',
-      isCorrect: true,
-      selectedOption: '5',
-      options: [
-        { value: '3', isCorrect: false },
-        { value: '5', isCorrect: true },
-        { value: '7', isCorrect: false },
-        { value: '10', isCorrect: false }
-      ]
-    },
-    {
-      title: 'Question 2',
-      text: 'What is the area of a circle with radius 3?',
-      isCorrect: false,
-      selectedOption: '6π',
-      options: [
-        { value: '6π', isCorrect: false },
-        { value: '9', isCorrect: false },
-        { value: '9π', isCorrect: true },
-        { value: '27π', isCorrect: false }
-      ]
-    },
-    {
-      title: 'Question 3',
-      text: 'Solve for y: 3y - 7 = 14',
-      isCorrect: true,
-      selectedOption: '7',
-      options: [
-        { value: '5', isCorrect: false },
-        { value: '6', isCorrect: false },
-        { value: '7', isCorrect: true },
-        { value: '8', isCorrect: false }
-      ]
-    }
-  ];
+  // Computed properties
+  get score(): number {
+    return this.resultData
+      ? Math.round((this.resultData.score / this.resultData.totalPoints) * 100)
+      : 0;
+  }
 
-  constructor() {
+  get passingScore(): number {
+    return 60; // 60% passing threshold
+  }
+
+  get completionDate(): Date {
+    return this.resultData
+      ? new Date(this.resultData.completionDate)
+      : new Date();
+  }
+
+  get stats() {
+    if (!this.resultData) return [];
+
+    return [
+      { label: 'Correct', value: this.resultData.correctAnswers },
+      { label: 'Incorrect', value: this.resultData.incorrectAnswers },
+      { label: 'Total', value: this.resultData.totalQuestions },
+      { label: 'Status', value: this.completionDate.toLocaleDateString() },
+    ];
+  }
+
+  get questions(): ResultQuestion[] {
+    return this.resultData?.questions || [];
+  }
+
+  get currentQuestion(): ResultQuestion | null {
+    return this.questions.length > 0 ? this.questions[this.currentPage] : null;
+  }
+
+  private subscription = new Subscription();
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private dataService: DataService,
+    private toastr: ToastrService
+  ) {}
+
+  ngOnInit(): void {
+    this.examId = this.route.snapshot.paramMap.get('id');
+
+    if (this.examId) {
+      this.loadExamResult();
+    } else {
+      this.handleError('Invalid exam ID');
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+  }
+
+  private loadExamResult(): void {
+    if (!this.examId) return;
+
+    const examId = parseInt(this.examId);
+
+    // Get the exam result data
+    const resultSub = this.dataService.getExamResult(examId).subscribe({
+      next: (result) => {
+        console.log('Exam result:', result);
+        // Handle both direct response and wrapped response formats
+        if (result && (result.data || result.exam)) {
+          this.processResultData(result);
+        } else {
+          console.error('Unexpected API response format:', result);
+          this.handleError('Invalid response format from server');
+        }
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading exam result:', err);
+        this.handleError('Failed to load exam results');
+      },
+    });
+
+    this.subscription.add(resultSub);
+  }
+
+  private processResultData(apiResult: any): void {
+    console.log('Processing API result:', apiResult);
+
+    // Handle the case where the API response might be wrapped in a data property
+    const resultData = apiResult.data || apiResult;
+
+    // Check if exam data exists
+    if (!resultData.exam) {
+      console.error('No exam data found in API response:', resultData);
+      this.handleError('Invalid exam result data - missing exam information');
+      return;
+    }
+
+    // Check if questions exist
+    if (
+      !resultData.exam.questions ||
+      !Array.isArray(resultData.exam.questions)
+    ) {
+      console.error('No questions found in exam data:', resultData.exam);
+      this.handleError('Invalid exam result data - missing questions');
+      return;
+    }
+
+    // Transform the API response to match our component structure
+    const submittedAnswers = JSON.parse(resultData.answers?.answer || '{}');
+
+    const questions: ResultQuestion[] = resultData.exam.questions.map(
+      (q: any) => ({
+        id: q.id,
+        title: q.title,
+        options: q.options,
+        correctAnswer: q.answer,
+        userAnswer: submittedAnswers[q.id] ?? -1,
+        isCorrect: submittedAnswers[q.id] === q.answer,
+        points: q.points,
+      })
+    );
+
+    const correctAnswers = questions.filter((q) => q.isCorrect).length;
+    const totalPoints = questions.reduce((sum, q) => sum + q.points, 0);
+
+    this.resultData = {
+      id: resultData.id,
+      examTitle: resultData.exam.title,
+      examDescription: resultData.exam.description,
+      score: resultData.score,
+      totalPoints: totalPoints,
+      passed: resultData.passed,
+      correctAnswers: correctAnswers,
+      incorrectAnswers: questions.length - correctAnswers,
+      totalQuestions: questions.length,
+      completionDate: resultData.createdAt,
+      questions: questions,
+    };
+
     this.paginationItems = Array(this.questions.length).fill(0);
   }
 
-  get currentQuestion() {
-    return this.questions[this.currentPage];
+  private handleError(message: string): void {
+    this.isLoading = false;
+    this.error = true;
+    this.errorMessage = message;
+    this.toastr.error(message, 'Error');
   }
 
   getCorrectAnswer(): string {
-    const correctOption = this.currentQuestion.options.find(option => option.isCorrect);
-    return correctOption ? correctOption.value : '';
+    if (!this.currentQuestion) return '';
+
+    const correctOption =
+      this.currentQuestion.options[this.currentQuestion.correctAnswer];
+    return correctOption || '';
   }
 
-  nextQuestion() {
+  getUserAnswer(): string {
+    if (!this.currentQuestion || this.currentQuestion.userAnswer === -1) {
+      return 'Not answered';
+    }
+
+    return (
+      this.currentQuestion.options[this.currentQuestion.userAnswer] ||
+      'Invalid answer'
+    );
+  }
+
+  nextQuestion(): void {
     if (this.currentPage < this.questions.length - 1) {
       this.currentPage++;
     }
   }
 
-  prevQuestion() {
+  prevQuestion(): void {
     if (this.currentPage > 0) {
       this.currentPage--;
     }
   }
 
-  goToPage(index: number) {
-    this.currentPage = index;
+  goToPage(index: number): void {
+    if (index >= 0 && index < this.questions.length) {
+      this.currentPage = index;
+    }
+  }
+
+  goBackToExams(): void {
+    this.router.navigate(['/student/exams']);
+  }
+
+  retakeExam(): void {
+    if (this.examId) {
+      this.router.navigate(['/student/exams/start', this.examId]);
+    }
   }
 }

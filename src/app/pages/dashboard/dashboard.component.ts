@@ -3,83 +3,40 @@ import { SmcardComponent } from '../../shared/components/smcard/smcard.component
 import { BasechartComponent } from '../../components/basechart/basechart.component';
 import { Chart, registerables } from 'chart.js';
 import { CommonModule } from '@angular/common';
-import { DataService } from '../../services/data.service';
+import { RouterModule } from '@angular/router';
+import {
+  DataService,
+  StudentExamResult,
+  StudentDashboardStats,
+  CategoryPerformance,
+} from '../../services/data.service';
+import { finalize } from 'rxjs/operators';
 
 Chart.register(...registerables);
-
-interface ExamResult {
-  id: number;
-  examTitle: string;
-  score: number;
-  passed: boolean;
-  createdAt: string;
-  category: string;
-  correctAnswers: number;
-  totalQuestions: number;
-}
-
-interface DashboardStats {
-  totalExams: number;
-  completedExams: number;
-  averageScore: number;
-  passRate: number;
-  totalQuestions: number;
-  correctAnswers: number;
-}
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [SmcardComponent, BasechartComponent, CommonModule],
+  imports: [SmcardComponent, BasechartComponent, CommonModule, RouterModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent implements OnInit, OnDestroy {
-  // Stats for cards
-  stats: DashboardStats = {
+  isLoading = true;
+  hasError = false;
+  errorMessage = '';
+
+  stats: StudentDashboardStats = {
     totalExams: 0,
     completedExams: 0,
     averageScore: 0,
     passRate: 0,
     totalQuestions: 0,
-    correctAnswers: 0
+    correctAnswers: 0,
   };
 
-  // Recent exam results
-  recentResults: ExamResult[] = [
-    {
-      id: 1,
-      examTitle: 'Mathematics Final Exam',
-      score: 85,
-      passed: true,
-      createdAt: '2024-05-15',
-      category: 'Mathematics',
-      correctAnswers: 17,
-      totalQuestions: 20
-    },
-    {
-      id: 2,
-      examTitle: 'Science Midterm',
-      score: 72,
-      passed: true,
-      createdAt: '2024-05-14',
-      category: 'Science',
-      correctAnswers: 11,
-      totalQuestions: 15
-    },
-    {
-      id: 3,
-      examTitle: 'History Quiz',
-      score: 45,
-      passed: false,
-      createdAt: '2024-05-13',
-      category: 'History',
-      correctAnswers: 5,
-      totalQuestions: 10
-    }
-  ];
-  
-  // Chart instances
+  recentResults: StudentExamResult[] = [];
+
   private performanceChart: Chart | null = null;
   private categoryChart: Chart | null = null;
 
@@ -90,238 +47,255 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.performanceChart) {
-      this.performanceChart.destroy();
-    }
-    if (this.categoryChart) {
-      this.categoryChart.destroy();
-    }
+    this.performanceChart?.destroy();
+    this.categoryChart?.destroy();
+  }
+
+  // Add missing methods that the template calls
+  refreshData() {
+    this.loadDashboardData();
+  }
+
+  retryLoadData() {
+    this.loadDashboardData();
+  }
+
+  calculateAccuracy(): number {
+    if (this.stats.totalQuestions === 0) return 0;
+    return Math.round(
+      (this.stats.correctAnswers / this.stats.totalQuestions) * 100
+    );
+  }
+
+  trackByResultId(index: number, result: StudentExamResult): any {
+    return result.id || index;
   }
 
   private loadDashboardData() {
-    // TODO: Replace with actual API calls
-    // Example of how the data structure would look from API
-    const mockData = {
-      stats: {
-        totalExams: 12,
-        completedExams: 8,
-        averageScore: 78.5,
-        passRate: 75,
-        totalQuestions: 120,
-        correctAnswers: 94
-      },
-      recentResults: [
-        {
-          id: 1,
-          examTitle: 'Mathematics Final Exam',
-          score: 85,
-          passed: true,
-          createdAt: '2024-05-15',
-          category: 'Mathematics',
-          correctAnswers: 17,
-          totalQuestions: 20
-        },
-        {
-          id: 2,
-          examTitle: 'Science Midterm',
-          score: 72,
-          passed: true,
-          createdAt: '2024-05-14',
-          category: 'Science',
-          correctAnswers: 11,
-          totalQuestions: 15
-        },
-        {
-          id: 3,
-          examTitle: 'History Quiz',
-          score: 45,
-          passed: false,
-          createdAt: '2024-05-13',
-          category: 'History',
-          correctAnswers: 5,
-          totalQuestions: 10
-        }
-      ]
-    };
+    this.isLoading = true;
+    this.hasError = false;
 
-    // Update component data
-    this.stats = mockData.stats;
-    this.recentResults = mockData.recentResults;
-
-    // Initialize charts after data is loaded
-    this.initializeCharts();
+    Promise.all([
+      this.loadStats(),
+      this.loadRecentResults(),
+      this.loadChartData(),
+    ])
+      .then(() => {
+        this.isLoading = false;
+      })
+      .catch((error) => {
+        console.error('Error loading dashboard data:', error);
+        this.hasError = true;
+        this.errorMessage = 'Failed to load dashboard data. Please try again.';
+        this.isLoading = false;
+      });
   }
 
-  private initializeCharts() {
-    this.initializeScoreDistributionChart();
-    this.initializeCategoryChart();
+  private async loadStats(): Promise<void> {
+    try {
+      const stats = await this.dataService
+        .getStudentDashboardStats()
+        .toPromise();
+      this.stats = stats ?? this.stats;
+    } catch (error) {
+      console.error('Error loading stats:', error);
+      throw error;
+    }
   }
 
-  private initializeScoreDistributionChart() {
-    const ctx = document.getElementById('performanceChart') as HTMLCanvasElement;
+  private async loadRecentResults(): Promise<void> {
+    try {
+      const results = await this.dataService
+        .getStudentRecentResults(5)
+        .toPromise();
+      this.recentResults = results ?? [];
+    } catch (error) {
+      console.error('Error loading recent results:', error);
+      throw error;
+    }
+  }
+
+  private async loadChartData(): Promise<void> {
+    try {
+      setTimeout(() => {
+        this.initializeCharts();
+      }, 100);
+    } catch (error) {
+      console.error('Error loading chart data:', error);
+      throw error;
+    }
+  }
+
+  private async initializeCharts() {
+    try {
+      await Promise.all([
+        this.initializeScoreDistributionChart(),
+        this.initializeCategoryChart(),
+      ]);
+    } catch (error) {
+      console.error('Error initializing charts:', error);
+    }
+  }
+
+  private async initializeScoreDistributionChart() {
+    const ctx = document.getElementById(
+      'performanceChart'
+    ) as HTMLCanvasElement;
     if (!ctx) return;
 
-    // Calculate score distribution
-    const distribution = this.calculateScoreDistribution();
-    const total = distribution.reduce((a, b) => a + b, 0);
+    try {
+      const distribution = await this.dataService
+        .getStudentScoreDistribution()
+        .toPromise();
+      const data = distribution ?? [0, 0, 0, 0, 0];
+      const total = data.reduce((a, b) => a + b, 0);
 
-    this.performanceChart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['0-20%', '21-40%', '41-60%', '61-80%', '81-100%'],
-        datasets: [{
-          data: distribution,
-          backgroundColor: [
-            'rgba(239, 68, 68, 0.8)',   // Red for low scores
-            'rgba(245, 158, 11, 0.8)',  // Orange for below average
-            'rgba(234, 179, 8, 0.8)',   // Yellow for average
-            'rgba(34, 197, 94, 0.8)',   // Green for good
-            'rgba(16, 185, 129, 0.8)'   // Emerald for excellent
-          ],
-          borderColor: [
-            'rgb(239, 68, 68)',
-            'rgb(245, 158, 11)',
-            'rgb(234, 179, 8)',
-            'rgb(34, 197, 94)',
-            'rgb(16, 185, 129)'
-          ],
-          borderWidth: 2,
-          hoverOffset: 15
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '70%',
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              padding: 20,
-              font: {
-                size: 12
-              },
-              usePointStyle: true,
-              pointStyle: 'circle'
-            }
-          },
-          tooltip: {
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            padding: 12,
-            titleColor: '#fff',
-            titleFont: {
-              size: 14,
-              weight: 'bold'
+      this.performanceChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['0-20%', '21-40%', '41-60%', '61-80%', '81-100%'],
+          datasets: [
+            {
+              data: data,
+              backgroundColor: [
+                'rgba(239, 68, 68, 0.8)',
+                'rgba(245, 158, 11, 0.8)',
+                'rgba(234, 179, 8, 0.8)',
+                'rgba(34, 197, 94, 0.8)',
+                'rgba(16, 185, 129, 0.8)',
+              ],
+              borderColor: [
+                'rgb(239, 68, 68)',
+                'rgb(245, 158, 11)',
+                'rgb(234, 179, 8)',
+                'rgb(34, 197, 94)',
+                'rgb(16, 185, 129)',
+              ],
+              borderWidth: 2,
+              hoverOffset: 15,
             },
-            bodyColor: '#fff',
-            bodyFont: {
-              size: 13
-            },
-            callbacks: {
-              label: (context) => {
-                const value = context.raw as number;
-                const percentage = Math.round((value / total) * 100);
-                return `${value} exams (${percentage}%)`;
-              }
-            }
-          }
+          ],
         },
-        animation: {
-          animateScale: true,
-          animateRotate: true
-        }
-      }
-    });
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '70%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 20,
+                font: { size: 12 },
+                usePointStyle: true,
+                pointStyle: 'circle',
+              },
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              padding: 12,
+              titleColor: '#fff',
+              titleFont: { size: 14, weight: 'bold' },
+              bodyColor: '#fff',
+              bodyFont: { size: 13 },
+              callbacks: {
+                label: (context) => {
+                  const value = context.raw as number;
+                  const percentage =
+                    total > 0 ? Math.round((value / total) * 100) : 0;
+                  return `${value} exams (${percentage}%)`;
+                },
+              },
+            },
+          },
+          animation: {
+            animateScale: true,
+            animateRotate: true,
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Error creating score distribution chart:', error);
+    }
   }
 
-  private calculateScoreDistribution(): number[] {
-    const distribution = [0, 0, 0, 0, 0]; // Initialize array for 5 ranges
-
-    this.recentResults.forEach(result => {
-      const score = result.score;
-      if (score <= 20) distribution[0]++;
-      else if (score <= 40) distribution[1]++;
-      else if (score <= 60) distribution[2]++;
-      else if (score <= 80) distribution[3]++;
-      else distribution[4]++;
-    });
-
-    return distribution;
-  }
-
-  private initializeCategoryChart() {
+  private async initializeCategoryChart() {
     const ctx = document.getElementById('categoryChart') as HTMLCanvasElement;
     if (!ctx) return;
 
-    // Calculate average scores by category
-    const categoryScores = this.calculateCategoryScores();
+    try {
+      const categoryScores: CategoryPerformance | undefined =
+        await this.dataService.getStudentCategoryPerformance().toPromise();
 
-    this.categoryChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: Object.keys(categoryScores),
-        datasets: [{
-          label: 'Average Score',
-          data: Object.values(categoryScores),
-          backgroundColor: [
-            'rgba(79, 75, 230, 0.8)',
-            'rgba(16, 185, 129, 0.8)',
-            'rgba(245, 158, 11, 0.8)'
+      const labels = Object.keys(categoryScores ?? {});
+      const data = Object.values(categoryScores ?? {});
+
+      const colors = this.generateColors(labels.length);
+
+      this.categoryChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Average Score',
+              data: data,
+              backgroundColor: colors.background,
+              borderColor: colors.border,
+              borderWidth: 1,
+            },
           ],
-          borderColor: [
-            'rgb(79, 75, 230)',
-            'rgb(16, 185, 129)',
-            'rgb(245, 158, 11)'
-          ],
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
-          },
-          tooltip: {
-            callbacks: {
-              label: (context) => `Average: ${context.raw}%`
-            }
-          }
         },
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: 100,
-            title: {
-              display: true,
-              text: 'Score (%)'
-            }
-          }
-        }
-      }
-    });
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (context) => `Average: ${context.raw}%`,
+              },
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              title: {
+                display: true,
+                text: 'Score (%)',
+              },
+            },
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Error creating category chart:', error);
+    }
   }
 
-  private calculateCategoryScores(): { [key: string]: number } {
-    const categoryScores: { [key: string]: number[] } = {};
-    
-    this.recentResults.forEach(result => {
-      if (!categoryScores[result.category]) {
-        categoryScores[result.category] = [];
-      }
-      categoryScores[result.category].push(result.score);
-    });
+  private generateColors(count: number): {
+    background: string[];
+    border: string[];
+  } {
+    const baseColors = [
+      { bg: 'rgba(79, 75, 230, 0.8)', border: 'rgb(79, 75, 230)' },
+      { bg: 'rgba(16, 185, 129, 0.8)', border: 'rgb(16, 185, 129)' },
+      { bg: 'rgba(245, 158, 11, 0.8)', border: 'rgb(245, 158, 11)' },
+      { bg: 'rgba(239, 68, 68, 0.8)', border: 'rgb(239, 68, 68)' },
+      { bg: 'rgba(147, 51, 234, 0.8)', border: 'rgb(147, 51, 234)' },
+      { bg: 'rgba(59, 130, 246, 0.8)', border: 'rgb(59, 130, 246)' },
+    ];
 
-    const averages: { [key: string]: number } = {};
-    Object.keys(categoryScores).forEach(category => {
-      const scores = categoryScores[category];
-      averages[category] = Math.round(
-        scores.reduce((a, b) => a + b, 0) / scores.length
-      );
-    });
+    const background: string[] = [];
+    const border: string[] = [];
 
-    return averages;
+    for (let i = 0; i < count; i++) {
+      const color = baseColors[i % baseColors.length];
+      background.push(color.bg);
+      border.push(color.border);
+    }
+
+    return { background, border };
   }
 
   formatDate(dateString: string): string {
@@ -330,13 +304,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
     });
-  }
-
-  calculateAccuracy(): number {
-    if (this.stats.totalQuestions === 0) return 0;
-    return Math.round((this.stats.correctAnswers / this.stats.totalQuestions) * 100);
   }
 }

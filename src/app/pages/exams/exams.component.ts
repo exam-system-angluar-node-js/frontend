@@ -1,36 +1,98 @@
-import { Component, OnInit } from '@angular/core';
-import { CardComponent } from "../../shared/components/card/card.component";
-import { DataService } from '../../services/data.service';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CardComponent } from '../../shared/components/card/card.component';
+import { DataService, ExamData } from '../../services/data.service';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-exams',
   imports: [CardComponent],
   templateUrl: './exams.component.html',
-  styleUrl: './exams.component.css'
+  styleUrl: './exams.component.css',
 })
-export class ExamsComponent implements OnInit {
+export class ExamsComponent implements OnInit, OnDestroy {
   searchExam: string = '';
   category: string = 'all';
-  filteredExams: any[] = [];
-  
-  exams = [
-    { id: 1, title: 'HTML', description: 'HTML (HyperText Markup Language) is the standard markup language for creating web pages and web applications.', questionsCount: 15, category: 'frontend', creationDateInput: new Date(2025, 10, 15) ,instructorName: 'John Doe'},
-    { id: 2, title: 'CSS', description: 'CSS (Cascading Style Sheets) is a style sheet language used for describing the presentation of a document written in HTML or XML.', questionsCount: 15, category: 'frontend', creationDateInput: new Date(2024, 7, 28) ,instructorName: 'Jane Smith'},
-    { id: 3, title: 'JavaScript', description: 'JavaScript (JS) is a lightweight, interpreted, or just-in-time compiled programming language with first-class functions.', questionsCount: 15, category: 'frontend', creationDateInput: new Date(2025, 6, 24), instructorName: 'Bob Johnson' },
-    { id: 4, title: 'PHP', description: 'PHP (Hypertext Preprocessor) is a server-side scripting language, and a powerful tool for making dynamic and interactive Web pages.', questionsCount: 15, category: 'backend', creationDateInput: new Date(2025, 5, 4), instructorName: 'Alice Brown' },
-    { id: 5, title: 'Java', description: 'Java is a computer programming language. It is the most popular programming language in the world.', questionsCount: 15, category: 'backend', creationDateInput: new Date(2025, 8, 2), instructorName: 'Charlie Davis' },
-    { id: 6, title: 'Python', description: 'Python is a programming language that lets you work quickly and integrate systems more effectively.', questionsCount: 15, category: 'backend', creationDateInput: new Date(2025, 4, 12), instructorName: 'Emily Wilson' },
-    { id: 7, title: 'MongoDB', description: 'MongoDB is a source-available cross-platform document-oriented database program. Classified as a NoSQL database program, MongoDB uses JSON-like documents with optional schemas.', questionsCount: 15, category: 'database', creationDateInput: new Date(2025, 2, 14), instructorName: 'Frank Thompson' },
-    { id: 8, title: 'postgresql', description: 'PostgreSQL is a free and open-source relational database management system emphasizing extensibility and SQL compliance.', questionsCount: 15, category: 'database', creationDateInput: new Date(2025, 3, 11), instructorName: 'Grace Anderson' },
-    { id: 9, title: 'mysql', description: 'MySQL is an open-source relational database management system.', questionsCount: 15, category: 'database', creationDateInput: new Date(2025, 1, 1) },
-  ];
+  filteredExams: ExamData[] = [];
+  exams: ExamData[] = [];
+  loading: boolean = true;
+  error: string = '';
+
+  private destroy$ = new Subject<void>();
 
   constructor(private dataService: DataService) {}
 
   ngOnInit(): void {
-    this.filteredExams = this.exams;
-    // Initialize DataService with exams data
-    this.dataService.changeData(this.exams);
+    this.loadExams();
+    // Temporary: Debug the raw API response
+    this.debugApiResponse();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  // Temporary debugging method - remove after fixing
+  debugApiResponse(): void {
+    this.dataService
+      .debugExamData()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rawData) => {
+          console.log('=== DEBUGGING INSTRUCTOR NAMES ===');
+          rawData.forEach((exam, index) => {
+            console.log(`Exam ${index + 1} (ID: ${exam.id}):`);
+            console.log('- Title:', exam.title);
+            console.log('- instructorName:', exam.instructorName);
+            console.log('- instructor:', exam.instructor);
+            console.log('- teacher:', exam.teacher);
+            console.log('- teacherName:', exam.teacherName);
+            console.log('- createdBy:', exam.createdBy);
+            console.log('- author:', exam.author);
+            console.log('- All properties:', Object.keys(exam));
+            console.log('---');
+          });
+          console.log('=== END DEBUGGING ===');
+        },
+        error: (error) => {
+          console.error('Debug API call failed:', error);
+        },
+      });
+  }
+
+  loadExams(): void {
+    this.loading = true;
+    this.error = '';
+
+    this.dataService
+      .getExams()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (exams: ExamData[]) => {
+          this.exams = exams;
+          this.filteredExams = exams;
+          this.loading = false;
+
+          // Debug: Log transformed exams to see instructor names
+          console.log('=== TRANSFORMED EXAMS ===');
+          exams.forEach((exam) => {
+            console.log(
+              `Exam: ${exam.title}, Instructor: "${exam.instructorName}"`
+            );
+          });
+          console.log('=== END TRANSFORMED EXAMS ===');
+
+          // Update DataService with fetched exams data
+          this.dataService.changeData(exams);
+        },
+        error: (error) => {
+          console.error('Error loading exams:', error);
+          this.error = 'Failed to load exams. Please try again later.';
+          this.loading = false;
+          this.exams = [];
+          this.filteredExams = [];
+        },
+      });
   }
 
   handleSearch(event: Event): void {
@@ -46,10 +108,16 @@ export class ExamsComponent implements OnInit {
   }
 
   applyFilters(): void {
-    this.filteredExams = this.exams.filter(exam => {
+    this.filteredExams = this.exams.filter((exam) => {
       const matchesSearch = exam.title.toLowerCase().includes(this.searchExam);
-      const matchesCategory = this.category === 'all' || exam.category.toLowerCase() === this.category;
+      const matchesCategory =
+        this.category === 'all' ||
+        exam.category.toLowerCase() === this.category;
       return matchesSearch && matchesCategory;
     });
+  }
+
+  retryLoading(): void {
+    this.loadExams();
   }
 }
