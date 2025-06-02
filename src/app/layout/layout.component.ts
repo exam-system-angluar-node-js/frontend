@@ -4,6 +4,8 @@ import { SidebarComponent } from "../components/sidebar/sidebar.component";
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FocusModeService } from '../services/focus-mode.service';
+import { AuthService } from '../services/auth.service';
+import { DataService, ExamData } from '../services/data.service';
 
 @Component({
   selector: 'app-layout',
@@ -14,16 +16,36 @@ import { FocusModeService } from '../services/focus-mode.service';
 export class LayoutComponent implements OnInit {
   togglerState: boolean = false
   focusMode: boolean = false;
+  currentUser: any = null;
+  user: string = '';
+  examsLength: number = 0
   constructor(
     private focusModeService: FocusModeService,
-    private cdr: ChangeDetectorRef
-  ) { }
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService,
+    private dataService: DataService
+  ) {
+    this.initializeUserInfo();
+  }
 
   ngOnInit() {
     this.focusModeService.focusMode$.subscribe(mode => {
       this.focusMode = mode;
       this.cdr.detectChanges();
     });
+    this.dataService
+      .getExams()
+      .subscribe({
+        next: (exams: ExamData[]) => {
+          this.examsLength = exams.length;
+        }
+      })
+  }
+  private initializeUserInfo(): void {
+    this.currentUser = this.authService.currentUserValue;
+    if (this.currentUser) {
+      this.user = this.currentUser;
+    }
   }
 
   onToggleState(state: boolean) {
