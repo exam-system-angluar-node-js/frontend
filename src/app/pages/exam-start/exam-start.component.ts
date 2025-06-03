@@ -339,12 +339,7 @@ export class ExamStartComponent implements OnInit, OnDestroy {
   }
 
   get submitButtonClass(): string {
-    return (
-      'px-8 py-3 rounded-lg font-medium transition-colors ' +
-      (this.allQuestionsAnswered
-        ? 'bg-green-600 text-white hover:bg-green-700'
-        : 'bg-orange-600 text-white hover:bg-orange-700')
-    );
+    return 'px-8 py-3 rounded-lg font-medium transition-colors bg-purple-600 text-white hover:bg-purple-700';
   }
 
   getCurrentQuestionAnswer(): number {

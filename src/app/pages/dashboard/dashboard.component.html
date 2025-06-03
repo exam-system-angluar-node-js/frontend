@@ -5,13 +5,13 @@
      <div>
        <h1 class="text-4xl mb-2 font-bold text-white">Welcome back, {{studentName}}</h1>
       <p class="text-purple-100">
-        Track your progress and performance across all exams.
+        Track your scores and performance across all exams.
       </p>
      </div>
 
       <!-- Refresh Button -->
       <button (click)="refreshData()" [disabled]="isLoading"
-        class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-all duration-200 disabled:opacity-50">
+        class="bg-white/20 cursor-pointer hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-all duration-200 disabled:opacity-50">
         <svg class="w-5 h-5" [class.animate-spin]="isLoading" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
@@ -190,7 +190,7 @@
           <div *ngFor="let result of recentResults; trackBy: trackByResultId"
             class="flex flex-col sm:flex-row items-start sm:items-center text-sm p-4 hover:bg-zinc-50 dark:hover:bg-zinc-700 rounded-xl transition-all duration-200 transform hover:-translate-x-1">
             <div
-              class="w-12 h-12 bg-purple-100 dark:bg-purple-800 rounded-full flex items-center justify-center mb-3 sm:mb-0 sm:mr-4">
+              class="w-15 h-15 bg-purple-100 dark:bg-purple-800 rounded-full flex items-center justify-center mb-3 sm:mb-0 sm:mr-4">
               <span class="text-lg font-bold text-purple-600 dark:text-purple-300">{{ result.score }}%</span>
             </div>
             <div class="flex-1 min-w-0">

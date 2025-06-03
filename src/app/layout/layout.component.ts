@@ -1,11 +1,11 @@
 import { Component, Input, OnInit, ChangeDetectorRef } from '@angular/core';
 import { NavbarComponent } from "../components/navbar/navbar.component";
 import { SidebarComponent } from "../components/sidebar/sidebar.component";
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FocusModeService } from '../services/focus-mode.service';
 import { AuthService } from '../services/auth.service';
-import { DataService, ExamData } from '../services/data.service';
+import { DataService, ExamData, StudentDashboardStats } from '../services/data.service';
 
 @Component({
   selector: 'app-layout',
@@ -18,10 +18,21 @@ export class LayoutComponent implements OnInit {
   focusMode: boolean = false;
   currentUser: any = null;
   user: string = '';
-  examsLength: number = 0
+  showAlert = false;
+  alertMessage = '';
+  alertType = 'error';
+  stats: StudentDashboardStats = {
+    totalExams: 0,
+    completedExams: 0,
+    averageScore: 0,
+    passRate: 0,
+    totalQuestions: 0,
+    correctAnswers: 0,
+  };
   constructor(
     private focusModeService: FocusModeService,
     private cdr: ChangeDetectorRef,
+    private router:Router,
     private authService: AuthService,
     private dataService: DataService
   ) {
@@ -33,14 +44,22 @@ export class LayoutComponent implements OnInit {
       this.focusMode = mode;
       this.cdr.detectChanges();
     });
-    this.dataService
-      .getExams()
-      .subscribe({
-        next: (exams: ExamData[]) => {
-          this.examsLength = exams.length;
-        }
-      })
+
+    this.loadStats()
   }
+
+  private async loadStats(): Promise<void> {
+    try {
+      const stats = await this.dataService
+        .getStudentDashboardStats()
+        .toPromise();
+      this.stats = stats ?? this.stats;
+    } catch (error) {
+      console.error('Error loading stats:', error);
+      throw error;
+    }
+  }
+
   private initializeUserInfo(): void {
     this.currentUser = this.authService.currentUserValue;
     if (this.currentUser) {
@@ -76,5 +95,23 @@ export class LayoutComponent implements OnInit {
         (document as any).msExitFullscreen();
       }
     }
+  }
+
+
+  showAlertMessage(message: string, type: 'success' | 'error') {
+    this.alertMessage = message;
+    this.alertType = type;
+    this.showAlert = true;
+    setTimeout(() => {
+      this.showAlert = false;
+    }, 3000);
+  }
+
+  logout():void {
+    this.authService.logout();
+    this.showAlertMessage('Logged out successfully! Redirecting to login...', 'success');
+    setTimeout(() => {
+      this.router.navigate(['/login']);
+    }, 1500);
   }
 }

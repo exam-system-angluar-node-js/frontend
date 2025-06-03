@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CardComponent } from '../../shared/components/card/card.component';
 import { DataService, ExamData } from '../../services/data.service';
-import { Subject, takeUntil } from 'rxjs';
+import { fromEvent, Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-exams',
@@ -16,7 +16,6 @@ export class ExamsComponent implements OnInit, OnDestroy {
   exams: ExamData[] = [];
   loading: boolean = true;
   error: string = '';
-
   private destroy$ = new Subject<void>();
 
   constructor(private dataService: DataService) {}

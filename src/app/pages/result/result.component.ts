@@ -235,10 +235,4 @@ export class ResultComponent implements OnInit, OnDestroy {
   goBackToExams(): void {
     this.router.navigate(['/student/exams']);
   }
-
-  retakeExam(): void {
-    if (this.examId) {
-      this.router.navigate(['/student/exams/start', this.examId]);
-    }
-  }
 }

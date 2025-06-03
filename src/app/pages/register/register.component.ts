@@ -16,6 +16,10 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './register.component.css',
 })
 export class RegisterComponent {
+  showAlert = false;
+  alertMessage = '';
+  alertType = 'error';
+
   constructor(private router: Router, private authService: AuthService) {}
   registerForm = new FormGroup({
     username: new FormControl('', [
@@ -55,6 +59,14 @@ export class RegisterComponent {
   navigateToLogin() {
     this.router.navigate(['/login']);
   }
+  showAlertMessage(message: string, type: 'success' | 'error') {
+    this.alertMessage = message;
+    this.alertType = type;
+    this.showAlert = true;
+    setTimeout(() => {
+      this.showAlert = false;
+    }, 3000);
+  }
   register() {
     const name = this.getName?.value;
     const email = this.getEmail?.value;
@@ -76,18 +88,28 @@ export class RegisterComponent {
             })
             .subscribe({
               next: () => {
-                this.router.navigate(['/home']);
+                this.showAlertMessage('Registration successful! Redirecting to login...', 'success');
+                setTimeout(() => {
+                  this.router.navigate(['/login']);
+                }, 1500);
               },
-              error: (err) => console.log('error happen in the register'),
+              error: (err) => {
+                console.log('error happen in the register', err);
+                if (err.status === 409) {
+                  this.showAlertMessage('Email already registered. Please use a different email.', 'error');
+                } else {
+                  this.showAlertMessage('Registration failed. Please try again.', 'error');
+                }
+                this.registerForm.reset();
+              },
             });
         }
       } else {
-        console.log('pass not match');
+        this.showAlertMessage('Passwords do not match. Please try again.', 'error');
       }
     } else {
-      //make the @if in html work
       this.registerForm.markAllAsTouched();
-      console.log('error');
+      this.showAlertMessage('Please fill in all required fields correctly.', 'error');
     }
   }
 }

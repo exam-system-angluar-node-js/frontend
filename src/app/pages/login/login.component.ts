@@ -16,7 +16,11 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './login.component.css',
 })
 export class LoginComponent {
-  constructor(private router: Router, private authService: AuthService) {}
+  showAlert = false;
+  alertMessage = '';
+  alertType = 'error';
+
+  constructor(private router: Router, private authService: AuthService) { }
   loginForm = new FormGroup({
     email: new FormControl('', [
       Validators.required,
@@ -38,6 +42,16 @@ export class LoginComponent {
   navigateToSignUp() {
     this.router.navigate(['/signup']);
   }
+
+  showAlertMessage(message: string, type: 'success' | 'error') {
+    this.alertMessage = message;
+    this.alertType = type;
+    this.showAlert = true;
+    setTimeout(() => {
+      this.showAlert = false;
+    }, 3000);
+  }
+
   login() {
     console.log('login clicked');
 
@@ -53,22 +67,32 @@ export class LoginComponent {
           .subscribe({
             next: (res: any) => {
               const role = res.user?.role;
-              console.log('Logged in as role:', role); // Debug log
+              console.log('Logged in as role:', role);
 
               if (role === 'student') {
-                this.router.navigate(['/student/dashboard']);
+                this.showAlertMessage('Login successful! Redirecting to student dashboard...', 'success');
+                setTimeout(() => {
+                  this.router.navigate(['/student/dashboard']);
+                }, 1500);
               } else if (role === 'teacher') {
-                this.router.navigate(['/teacher/dashboard']);
+                this.showAlertMessage('Login successful! Redirecting to teacher dashboard...', 'success');
+                setTimeout(() => {
+                  this.router.navigate(['/teacher/dashboard']);
+                }, 1500);
               } else {
-                console.log('Unknown role or not stored yet.');
+                this.showAlertMessage('Unknown role or not stored yet.', 'error');
               }
             },
-            error: (err) => console.log('login error', err),
+            error: (err) => {
+              console.log('login error', err);
+              this.showAlertMessage('Invalid email or password. Please try again.', 'error');
+              this.loginForm.reset();
+            },
           });
       }
     } else {
       this.loginForm.markAllAsTouched();
-      console.log('error');
+      this.showAlertMessage('Please fill in all required fields correctly.', 'error');
     }
   }
 }

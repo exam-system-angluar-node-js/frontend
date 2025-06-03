@@ -41,9 +41,7 @@ export class AuthService {
   }) {
     return this.http.post<any>(`${this.apiUrl}/signup`, credentials).pipe(
       tap((res) => {
-        if (res.token && res.user) {
-          localStorage.setItem(this.tokenKey, res.token);
-          localStorage.setItem(this.userKey, JSON.stringify(res.user));
+        if (res.user) {
           this.isLoggedIn$.next(true);
           this.currentUser$.next(res.user);
         }

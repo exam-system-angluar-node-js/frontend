@@ -2,9 +2,11 @@ h2 {
   color: var(--main-color);
   font-weight: bold;
 }
+
 h2 span {
   color: var(--secondary-color);
 }
+
 h4 {
   color: var(--main-color);
 }
@@ -13,6 +15,7 @@ h4 {
 label {
   font-weight: 500;
 }
+
 input:focus {
   border-color: none !important;
   outline: 2px solid var(--main-color) !important;
@@ -28,26 +31,32 @@ input:focus {
   border-radius: 8px;
   transition: 0.3s ease;
 }
+
 .btn:hover {
   background-color: var(--secondary-color);
   color: white;
 }
+
 p a {
   color: var(--main-color);
   text-decoration: none;
   transition: 0.3s ease;
 }
+
 p a:hover {
   color: var(--secondary-color);
 }
+
 .form-check-input:checked {
   background-color: var(--main-color);
   border-color: var(--main-color);
 }
+
 .input-with-icon {
   position: relative;
+
   input {
-    padding-left: 30px; 
+    padding-left: 30px;
   }
 
   .bi {
@@ -55,6 +64,40 @@ p a:hover {
     left: 10px;
     top: 50%;
     transform: translateY(-50%);
-    color: #6c757d; 
+    color: #6c757d;
+  }
+}
+
+.alert {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 25px;
+  border-radius: 4px;
+  color: white;
+  font-weight: 500;
+  z-index: 1000;
+  animation: slideIn 0.3s ease-out;
+}
+
+.alert-error {
+  background-color: #dc3545;
+  box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);
+}
+
+.alert-success {
+  background-color: #28a745;
+  box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
   }
 }
