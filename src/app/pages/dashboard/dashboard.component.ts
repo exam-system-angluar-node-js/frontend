@@ -9,6 +9,7 @@ import {
   StudentExamResult,
   StudentDashboardStats,
   CategoryPerformance,
+  ExamData,
 } from '../../services/data.service';
 import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
@@ -28,6 +29,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   errorMessage = '';
   currentUser: any = null;
   studentName: string = 'Student';
+  averageScore:number = 0;
   stats: StudentDashboardStats = {
     totalExams: 0,
     completedExams: 0,

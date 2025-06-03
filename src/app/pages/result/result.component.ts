@@ -46,11 +46,9 @@ export class ResultComponent implements OnInit, OnDestroy {
   currentPage = 0;
   paginationItems: any[] = [];
 
-  // Computed properties
-  get score(): number {
-    return this.resultData
-      ? Math.round((this.resultData.score / this.resultData.totalPoints) * 100)
-      : 0;
+  // Computed properties  
+  get score(): any {
+    return this.resultData?.score
   }
 
   get passingScore(): number {

@@ -124,17 +124,18 @@ export class EditExamComponent implements OnInit {
       }
       this.editingQuestion = null;
     } else {
-      // Add new question - generate temporary ID for local state
+      // Add new question
       const newQuestion: Question = {
         ...questionData,
-        id: Math.max(0, ...this.questions.map((q) => q.id || 0)) + 1,
+        id: Date.now(), // Use timestamp as temporary ID
       };
       this.questions.push(newQuestion);
       this.toastr.success('Question added successfully', 'Success');
     }
 
-    // Reset form for next question
+    // Reset form and hide it
     this.resetQuestionForm();
+    this.showAddQuestionForm = false;
   }
 
   resetQuestionForm(): void {
@@ -166,26 +167,51 @@ export class EditExamComponent implements OnInit {
         next: (updatedExam) => {
           console.log('Exam updated, saving questions...', this.questions);
 
-          this.questionService
-            .addQuestions(parseInt(this.examId), this.questions)
-            .subscribe({
-              next: (res) => {
-                console.log('Questions saved', res);
-                this.toastr.success(
-                  'Exam changes saved successfully',
-                  'Success'
-                );
+          // Separate new questions from existing ones
+          const existingQuestions = this.questions.filter(q => q.id && q.id < 1000000); // Real IDs are small numbers
+          const newQuestions = this.questions.filter(q => q.id && q.id >= 1000000); // Temporary IDs are timestamps
 
-                // Navigate back to manage page after successful save
-                setTimeout(() => {
-                  this.router.navigate(['/teacher/manage']);
-                }, 1500);
-              },
-              error: (err) => {
-                console.error('Failed to save questions', err);
-                this.toastr.error('Failed to save questions', 'Error');
-              },
-            });
+          // First update existing questions
+          const updatePromises = existingQuestions.map(question => 
+            this.questionService.updateQuestion(question).toPromise()
+          );
+
+          // Then add new questions
+          if (newQuestions.length > 0) {
+            // Remove temporary IDs before sending to server
+            const questionsToAdd = newQuestions.map(({ id, ...question }) => question);
+            
+            this.questionService
+              .addQuestions(parseInt(this.examId), questionsToAdd)
+              .subscribe({
+                next: (res) => {
+                  console.log('New questions saved', res);
+                  this.toastr.success(
+                    'Exam changes saved successfully',
+                    'Success'
+                  );
+
+                  // Navigate back to manage page after successful save
+                  setTimeout(() => {
+                    this.router.navigate(['/teacher/manage']);
+                  }, 1500);
+                },
+                error: (err) => {
+                  console.error('Failed to save new questions', err);
+                  this.toastr.error('Failed to save new questions', 'Error');
+                },
+              });
+          } else {
+            this.toastr.success(
+              'Exam changes saved successfully',
+              'Success'
+            );
+
+            // Navigate back to manage page after successful save
+            setTimeout(() => {
+              this.router.navigate(['/teacher/manage']);
+            }, 1500);
+          }
         },
         error: (err) => {
           console.error('Failed to update exam', err);

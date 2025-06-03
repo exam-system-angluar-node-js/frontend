@@ -33,6 +33,8 @@ export class AddExamComponent {
       description: ['', Validators.required],
       duration: [60, [Validators.required, Validators.min(1)]],
       startDate: ['', Validators.required],
+      category: ['', Validators.required],
+      status: ['pending', Validators.required]
     });
   }
 
@@ -59,8 +61,6 @@ export class AddExamComponent {
     const examData: Exam = {
       ...this.examForm.value,
       userId,
-      status: 'pending',
-      category: 'programming', // Default category; can be dynamic later
     };
 
     this.examService.createExam(examData).subscribe({
