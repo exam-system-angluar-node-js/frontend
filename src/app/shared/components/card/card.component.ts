@@ -35,6 +35,7 @@ export class CardComponent implements OnInit {
   @Input() instructorName: string = '';
   @Input() creationDateInput: string | Date = new Date();
   @Input() manage: boolean = false;
+  @Input() instructorPublisher: boolean = false;
   @Input() userRole: string = 'teacher'; // Default to teacher, can be 'admin' or 'teacher'
   @Input() duration: number = 45; // Add this to CardComponent inputs
 

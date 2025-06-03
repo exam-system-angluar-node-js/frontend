@@ -20,9 +20,9 @@
       class="w-full sm:w-56 px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none transition disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <option value="all">All Subjects</option>
-      <option value="frontend">Front-End</option>
-      <option value="backend">Back-End</option>
-      <option value="database">Database</option>
+      @for (exam of exams; track $index) {
+      <option value="{{ exam.category }}">{{ exam.category }}</option>
+      }
     </select>
   </div>
 
@@ -158,6 +158,7 @@
     class="grid justify-center sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
   >
     @for (exam of filteredExams; track exam.id) {
+      @if(exam.questionsCount>=1){
     <app-card
       [id]="exam.id"
       [title]="exam.title"
@@ -168,8 +169,10 @@
       [creationDateInput]="exam.creationDateInput"
       [duration]="exam.duration ?? 0"
       [manage]="false"
+      [instructorPublisher]="true"
     >
     </app-card>
+      }
     }
   </div>
   }

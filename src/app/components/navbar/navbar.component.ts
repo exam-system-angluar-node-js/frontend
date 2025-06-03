@@ -12,7 +12,8 @@ export class NavbarComponent implements OnInit {
   queryPath!: string;
   isDropdownOpen = false;
   @Input() userDetails: any
-  constructor(private route: ActivatedRoute) {}
+  @Input() logout!: () => void;
+  constructor(private route: ActivatedRoute) { }
 
   @Input() isSidebarOpen = false;
   @Output() toggleState = new EventEmitter<boolean>();
@@ -40,5 +41,9 @@ export class NavbarComponent implements OnInit {
     this.isDropdownOpen = false;
     this.dropdown.nativeElement.classList.add('hidden');
     this.dropdown.nativeElement.classList.remove('block');
+  }
+
+  handleLogout() {
+    this.logout();
   }
 }

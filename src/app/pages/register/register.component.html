@@ -13,30 +13,34 @@
       </p>
     </div>
 
+    <!-- Alert Component -->
+    <div *ngIf="showAlert" class="alert" [ngClass]="{
+      'alert-error': alertType === 'error',
+      'alert-success': alertType === 'success'
+    }">
+      {{ alertMessage }}
+    </div>
+
     <!-- Register Form Card -->
     <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg p-8 border border-zinc-200 dark:border-zinc-700">
       <form [formGroup]="registerForm" (submit)="register()" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Username Input -->
           <div>
-            <label for="username" class="block text-sm font-medium text-zinc-900 dark:text-white mb-1">
+            <label for="name" class="block text-sm font-medium text-zinc-900 dark:text-white mb-1">
               Username
             </label>
-            <input 
-              type="text" 
-              formControlName="username"
-              id="username"
+            <input type="text" formControlName="username" id="name"
               class="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none transition"
-              placeholder="johndoe"
-            />
+              placeholder="johndoe" />
             @if (getName?.touched) {
             <div class="mt-1 text-sm text-red-500">
               @if (getName?.hasError('required')) {
-                Username is required
+              Username is required
               } @if (getName?.hasError('minlength')) {
-                Minimum 3 characters required
+              Minimum 3 characters required
               } @if (getName?.hasError('pattern')) {
-                Only letters allowed
+              Only letters allowed
               }
             </div>
             }
@@ -47,19 +51,15 @@
             <label for="email" class="block text-sm font-medium text-zinc-900 dark:text-white mb-1">
               Email
             </label>
-            <input 
-              type="email" 
-              formControlName="email"
-              id="email"
+            <input type="email" formControlName="email" id="email"
               class="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none transition"
-              placeholder="name@company.com"
-            />
+              placeholder="name@company.com" />
             @if (getEmail?.touched) {
             <div class="mt-1 text-sm text-red-500">
               @if (getEmail?.hasError('required')) {
-                Email is required
+              Email is required
               } @if (getEmail?.hasError('pattern')) {
-                Enter a valid email address
+              Enter a valid email address
               }
             </div>
             }
@@ -70,19 +70,15 @@
             <label for="password" class="block text-sm font-medium text-zinc-900 dark:text-white mb-1">
               Password
             </label>
-            <input 
-              type="password" 
-              formControlName="password"
-              id="password"
+            <input type="password" formControlName="password" id="password"
               class="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none transition"
-              placeholder="••••••••"
-            />
+              placeholder="••••••••" />
             @if (getPassword?.touched) {
             <div class="mt-1 text-sm text-red-500">
               @if (getPassword?.hasError('required')) {
-                Password is required
+              Password is required
               } @if (getPassword?.hasError('minlength')) {
-                Minimum 6 characters required
+              Minimum 6 characters required
               }
             </div>
             }
@@ -93,19 +89,15 @@
             <label for="confirmPassword" class="block text-sm font-medium text-zinc-900 dark:text-white mb-1">
               Confirm Password
             </label>
-            <input 
-              type="password" 
-              formControlName="confirmPassword"
-              id="confirmPassword"
+            <input type="password" formControlName="confirmPassword" id="confirmPassword"
               class="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none transition"
-              placeholder="••••••••"
-            />
+              placeholder="••••••••" />
             @if (getConfirmPassword?.touched) {
             <div class="mt-1 text-sm text-red-500">
               @if (getConfirmPassword?.hasError('required')) {
-                Please confirm your password
+              Please confirm your password
               } @if (getConfirmPassword?.hasError('passwordMismatch')) {
-                Passwords do not match
+              Passwords do not match
               }
             </div>
             }
@@ -119,46 +111,35 @@
           </label>
           <div class="flex gap-6">
             <div class="flex items-center">
-              <input 
-                type="radio" 
-                formControlName="role"
-                id="student"
-                value="student"
-                class="w-4 h-4 text-purple-600 border-zinc-300 focus:ring-purple-500"
-              />
+              <input type="radio" formControlName="role" id="student" value="student"
+                class="w-4 h-4 text-purple-600 border-zinc-300 focus:ring-purple-500" />
               <label for="student" class="ml-2 text-sm font-medium text-zinc-900 dark:text-white">
                 Student
               </label>
             </div>
             <div class="flex items-center">
-              <input 
-                type="radio" 
-                formControlName="role"
-                id="admin"
-                value="admin"
-                class="w-4 h-4 text-purple-600 border-zinc-300 focus:ring-purple-500"
-              />
-              <label for="admin" class="ml-2 text-sm font-medium text-zinc-900 dark:text-white">
-                Admin
+              <input type="radio" formControlName="role" id="teacher" value="teacher"
+                class="w-4 h-4 text-purple-600 border-zinc-300 focus:ring-purple-500" />
+              <label for="teacher" class="ml-2 text-sm font-medium text-zinc-900 dark:text-white">
+                Teacher
               </label>
             </div>
           </div>
           @if (getRole?.touched) {
           <div class="mt-1 text-sm text-red-500">
             @if (getRole?.hasError('required')) {
-              Please select a role
+            Please select a role
             }
           </div>
           }
         </div>
 
         <!-- Submit Button -->
-        <button 
-          type="submit"
-          class="w-full inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg shadow transition-all duration-200"
-        >
+        <button type="submit"
+          class="w-full inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg shadow transition-all duration-200">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
           </svg>
           Create Account
         </button>
@@ -166,10 +147,7 @@
         <!-- Login Link -->
         <p class="text-center text-sm text-zinc-600 dark:text-zinc-400">
           Already have an account?
-          <a 
-            (click)="navigateToLogin()"
-            class="text-purple-600 hover:text-purple-700 font-medium cursor-pointer"
-          >
+          <a (click)="navigateToLogin()" class="text-purple-600 hover:text-purple-700 font-medium cursor-pointer">
             Sign in
           </a>
         </p>

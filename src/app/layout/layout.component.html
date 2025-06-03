@@ -1,5 +1,16 @@
-<app-navbar *ngIf="!focusMode" [isSidebarOpen]="togglerState" [userDetails]="user" (toggleState)="onToggleState($event)" />
-<app-sidebar *ngIf="!focusMode" [isOpen]="togglerState" [userDetails]="user" [examLength]="examsLength" (closeSidebar)="togglerState = false" />
+@if(showAlert){
+<div class="alert" [class]="{
+  'alert-error': alertType === 'error',
+  'alert-success': alertType === 'success'
+}">
+  {{ alertMessage }}
+</div>
+}
+
+<app-navbar *ngIf="!focusMode" [isSidebarOpen]="togglerState" [userDetails]="user"
+  (toggleState)="onToggleState($event)"  [logout]="logout.bind(this)"/>
+<app-sidebar *ngIf="!focusMode" [isOpen]="togglerState" [userDetails]="user" [examLength]="stats.totalExams"
+  (closeSidebar)="togglerState = false"  [logoutFunction]="logout.bind(this)" />
 
 <main class="min-h-screen dark:bg-zinc-900">
   <div class="container mx-auto px-4 py-20">

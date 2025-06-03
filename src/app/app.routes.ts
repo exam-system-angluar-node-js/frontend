@@ -4,8 +4,6 @@ import { RegisterComponent } from './pages/register/register.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { SettingsComponent } from './pages/settings/settings.component';
 import { ResultsComponent } from './pages/results/results.component';
-import { HomeComponent } from './pages/home/home.component';
-import { authGuard } from './guards/auth.guard';
 import { LayoutComponent } from './layout/layout.component';
 import { ExamComponent } from './pages/exam/exam.component';
 import { ResultComponent } from './pages/result/result.component';
@@ -22,7 +20,6 @@ import { TeacherGuard } from './guards/teacher.guard';
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: RegisterComponent },
-  { path: 'home', canActivate: [authGuard], component: HomeComponent },
   {
     path: '',
     redirectTo: '/student/dashboard',

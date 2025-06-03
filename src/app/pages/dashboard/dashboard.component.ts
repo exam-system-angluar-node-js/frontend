@@ -1,6 +1,4 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { SmcardComponent } from '../../shared/components/smcard/smcard.component';
-import { BasechartComponent } from '../../components/basechart/basechart.component';
 import { Chart, registerables } from 'chart.js';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -11,7 +9,6 @@ import {
   CategoryPerformance,
   ExamData,
 } from '../../services/data.service';
-import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 
 Chart.register(...registerables);
@@ -19,7 +16,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [SmcardComponent, BasechartComponent, CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
@@ -29,7 +26,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   errorMessage = '';
   currentUser: any = null;
   studentName: string = 'Student';
-  averageScore:number = 0;
+  averageScore: number = 0;
   stats: StudentDashboardStats = {
     totalExams: 0,
     completedExams: 0,
@@ -44,7 +41,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private performanceChart: Chart | null = null;
   private categoryChart: Chart | null = null;
 
-  constructor(private dataService: DataService,private authService: AuthService) {
+  constructor(private dataService: DataService, private authService: AuthService) {
     this.initializeUserInfo();
   }
 
@@ -52,7 +49,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.loadDashboardData();
   }
 
-    private initializeUserInfo(): void {
+  private initializeUserInfo(): void {
     this.currentUser = this.authService.currentUserValue;
     if (this.currentUser && this.currentUser.name) {
       this.studentName = this.currentUser.name;
@@ -201,7 +198,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 padding: 20,
                 font: { size: 12 },
                 usePointStyle: true,
-                pointStyle: 'circle',
+                pointStyle: 'rectRounded',
               },
             },
             tooltip: {
@@ -276,7 +273,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
               max: 100,
               title: {
                 display: true,
-                text: 'Score (%)',
+                text: 'Performance (%)',
               },
             },
           },
