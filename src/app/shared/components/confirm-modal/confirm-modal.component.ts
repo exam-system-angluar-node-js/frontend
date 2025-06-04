@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
   template: `
     <div *ngIf="isOpen" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
       <!-- Background overlay -->
+      <div class="fixed inset-0 transition-opacity"></div>
 
       <!-- Modal panel -->
       <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
@@ -38,26 +39,37 @@ import { CommonModule } from '@angular/common';
           <div class="bg-gray-50 dark:bg-zinc-700/50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
             <button
               type="button"
-              class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
+              [disabled]="isLoading"
+              class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed sm:ml-3 sm:w-auto"
               (click)="onConfirm()"
             >
-              {{ confirmText }}
+              <span *ngIf="isLoading" class="inline-flex items-center">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Deleting...
+              </span>
+              <span *ngIf="!isLoading">{{ confirmText }}</span>
             </button>
             <button
               type="button"
-              class="mt-3 inline-flex w-full justify-center rounded-md bg-white dark:bg-zinc-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-zinc-600 hover:bg-gray-50 dark:hover:bg-zinc-700 sm:mt-0 sm:w-auto"
+              [disabled]="isLoading"
+              class="mt-3 inline-flex w-full justify-center rounded-md bg-white dark:bg-zinc-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-zinc-600 hover:bg-gray-50 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed sm:mt-0 sm:w-auto"
               (click)="onCancel()"
             >
               {{ cancelText }}
             </button>
           </div>
         </div>
+      </div>
     </div>
   `,
   styles: []
 })
 export class ConfirmModalComponent {
   @Input() isOpen = false;
+  @Input() isLoading = false;
   @Input() title = 'Confirm Delete';
   @Input() message = 'Are you sure you want to delete this item? This action cannot be undone.';
   @Input() confirmText = 'Delete';
@@ -66,10 +78,14 @@ export class ConfirmModalComponent {
   @Output() cancel = new EventEmitter<void>();
 
   onConfirm(): void {
-    this.confirm.emit();
+    if (!this.isLoading) {
+      this.confirm.emit();
+    }
   }
 
   onCancel(): void {
-    this.cancel.emit();
+    if (!this.isLoading) {
+      this.cancel.emit();
+    }
   }
 } 

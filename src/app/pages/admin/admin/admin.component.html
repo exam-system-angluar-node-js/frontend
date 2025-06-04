@@ -49,20 +49,6 @@
 
     <!-- Main Content -->
     <div *ngIf="!loading && !error">
-      <!-- Exam Filter -->
-      <div class="mb-8 p-6 rounded-xl shadow-md w-fit bg-white dark:bg-zinc-800">
-        <label class="text-zinc-600 dark:text-zinc-300 text-sm font-medium mb-2 block">
-          Select Exam
-        </label>
-        <select [(ngModel)]="selectedExamId" (change)="onExamChange()"
-          class="w-full max-w-xs bg-white dark:bg-zinc-800 rounded-lg px-4 py-3 border border-zinc-300 dark:border-zinc-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-zinc-700 dark:text-zinc-300 transition-all duration-200 hover:border-purple-400">
-          <option [value]="null">All Exams</option>
-          <option *ngFor="let exam of examResults; trackBy: trackByExamId" [value]="exam.id">
-            {{ exam.exam.title }}
-          </option>
-        </select>
-      </div>
-
       <!-- Stats Cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <!-- Total Students -->
@@ -160,7 +146,7 @@
           class="bg-white dark:bg-zinc-800 rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
           <div class="flex items-center justify-between mb-6">
             <h3 class="text-xl font-semibold text-zinc-700 dark:text-zinc-300">
-              {{ selectedExam?.exam?.title || "Overall" }} Results
+              Overall Results
             </h3>
             <div class="w-3 h-3 rounded-full bg-purple-500 animate-pulse"></div>
           </div>
@@ -174,7 +160,7 @@
           class="bg-white dark:bg-zinc-800 rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
           <div class="flex items-center justify-between mb-6">
             <h3 class="text-xl font-semibold text-zinc-700 dark:text-zinc-300">
-              {{ selectedExam?.exam?.title || "All Exams" }} Activity
+              Exam Attempts Activity
             </h3>
             <div class="w-3 h-3 rounded-full bg-purple-500 animate-pulse"></div>
           </div>
@@ -190,13 +176,12 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <h3 class="text-xl font-semibold text-zinc-700 dark:text-zinc-300">
             Recent Results
-            {{ selectedExam ? " - " + selectedExam.exam.title : "" }}
           </h3>
           <span class="text-sm text-purple-500 font-medium cursor-pointer hover:text-purple-600 transition-colors">View
             All</span>
         </div>
 
-        <div *ngIf="filteredResults.length === 0" class="text-center py-8">
+        <div *ngIf="recentResults.length === 0" class="text-center py-8">
           <svg class="w-16 h-16 text-zinc-300 dark:text-zinc-600 mx-auto mb-4" fill="none" stroke="currentColor"
             viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -209,7 +194,7 @@
         </div>
 
         <div class="space-y-4">
-          <div *ngFor="let result of filteredResults; trackBy: trackByResultId"
+          <div *ngFor="let result of recentResults; trackBy: trackByResultId"
             class="flex flex-col sm:flex-row items-start sm:items-center text-sm p-4 hover:bg-zinc-50 dark:hover:bg-zinc-700 rounded-xl transition-all duration-200 transform hover:-translate-x-1">
             <div
               class="w-15 h-15 bg-purple-100 dark:bg-purple-800 rounded-full flex items-center justify-center mb-3 sm:mb-0 sm:mr-4">

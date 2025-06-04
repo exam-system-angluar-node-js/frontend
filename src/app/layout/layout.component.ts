@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { NavbarComponent } from "../components/navbar/navbar.component";
 import { SidebarComponent } from "../components/sidebar/sidebar.component";
 import { Router, RouterOutlet } from '@angular/router';
@@ -6,6 +6,9 @@ import { CommonModule } from '@angular/common';
 import { FocusModeService } from '../services/focus-mode.service';
 import { AuthService } from '../services/auth.service';
 import { DataService, ExamData, StudentDashboardStats } from '../services/data.service';
+import { ExamCountService } from '../services/exam-count.service';
+import { Subscription } from 'rxjs';
+import { ExamService } from '../services/exam.service';
 
 @Component({
   selector: 'app-layout',
@@ -13,7 +16,7 @@ import { DataService, ExamData, StudentDashboardStats } from '../services/data.s
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.css'
 })
-export class LayoutComponent implements OnInit {
+export class LayoutComponent implements OnInit, OnDestroy {
   togglerState: boolean = false
   focusMode: boolean = false;
   currentUser: any = null;
@@ -29,12 +32,18 @@ export class LayoutComponent implements OnInit {
     totalQuestions: 0,
     correctAnswers: 0,
   };
+  private examCountSubscription?: Subscription;
+  private adminExamCountSubscription?: Subscription;
+  private studentExamCountSubscription?: Subscription;
+
   constructor(
     private focusModeService: FocusModeService,
     private cdr: ChangeDetectorRef,
     private router:Router,
     private authService: AuthService,
-    private dataService: DataService
+    private dataService: DataService,
+    private examCountService: ExamCountService,
+    private examService: ExamService
   ) {
     this.initializeUserInfo();
   }
@@ -45,7 +54,36 @@ export class LayoutComponent implements OnInit {
       this.cdr.detectChanges();
     });
 
-    this.loadStats()
+    this.loadStats();
+
+    // Subscribe to admin exam count
+    this.adminExamCountSubscription = this.examCountService.adminExamCount$.subscribe(count => {
+      if (this.currentUser?.role === 'teacher') {
+        this.stats.totalExams = count;
+        this.cdr.detectChanges();
+      }
+    });
+
+    // Subscribe to student exam count
+    this.studentExamCountSubscription = this.examCountService.studentExamCount$.subscribe(count => {
+      if (this.currentUser?.role === 'student') {
+        this.stats.totalExams = count;
+        this.cdr.detectChanges();
+      }
+    });
+
+    // Load exams for student count if user is a student
+    if (this.currentUser?.role === 'student') {
+      this.examService.getAllExamsForStudent().subscribe(exams => {
+        this.examCountService.updateStudentExamCount(exams ?? []);
+      });
+    }
+  }
+
+  ngOnDestroy() {
+    this.examCountSubscription?.unsubscribe();
+    this.adminExamCountSubscription?.unsubscribe();
+    this.studentExamCountSubscription?.unsubscribe();
   }
 
   private async loadStats(): Promise<void> {
@@ -96,7 +134,6 @@ export class LayoutComponent implements OnInit {
       }
     }
   }
-
 
   showAlertMessage(message: string, type: 'success' | 'error') {
     this.alertMessage = message;

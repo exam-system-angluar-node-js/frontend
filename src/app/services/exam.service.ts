@@ -12,6 +12,7 @@ export interface Exam {
   status?: string;
   userId?: number;
   questions?: any[];
+  questionsCount?: number;
 }
 
 @Injectable({
@@ -19,11 +20,16 @@ export interface Exam {
 })
 export class ExamService {
   private baseUrl = 'http://localhost:3000/api/v1/exams';
+  private questionBaseUrl = 'http://localhost:3000/api/v1/questions';
 
   constructor(private http: HttpClient) {}
 
-  getAllExams(): Observable<any[]> {
+  getAllExamsForTeacher(): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/teacher`);
+  }
+
+  getAllExamsForStudent(): Observable<any[]> {
+    return this.http.get<any[]>(this.baseUrl);
   }
 
   createExam(exam: Exam): Observable<any> {
@@ -44,5 +50,17 @@ export class ExamService {
     answers: { [questionId: number]: number }
   ): Observable<any> {
     return this.http.post(`${this.baseUrl}/submit/${resultId}`, { answers });
+  }
+
+  deleteExam(examId: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/${examId}`);
+  }
+
+  updateQuestion(questionId: number, questionData: any): Observable<any> {
+    return this.http.patch(`${this.questionBaseUrl}/${questionId}`, questionData);
+  }
+
+  deleteQuestion(questionId: number): Observable<any> {
+    return this.http.delete(`${this.questionBaseUrl}/${questionId}`);
   }
 }
