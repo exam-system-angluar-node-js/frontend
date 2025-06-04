@@ -122,4 +122,8 @@ export class ExamsComponent implements OnInit, OnDestroy {
   get areAllExamsEmpty(): boolean {
     return this.filteredExams.every(exam => exam.questionsCount < 1);
   }
+
+    refreshResults(): void {
+     this.retryLoading();
+  }
 }
