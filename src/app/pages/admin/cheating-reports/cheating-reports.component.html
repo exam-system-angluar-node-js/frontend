@@ -1,0 +1,146 @@
+<div class="max-w-7xl mx-auto px-4 pb-8 sm:px-6">
+  <div class="flex flex-col sm:flex-row items-center justify-between mb-4 gap-4">
+    <h1 class="text-3xl font-semibold text-zinc-900 dark:text-white tracking-tight">
+      Cheating Reports
+    </h1>
+    <!-- Export Button -->
+    <button
+      (click)="exportToCsv()"
+      [disabled]="isLoading || cheatingReports.length === 0"
+      class="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg shadow transition-all duration-200"
+    >
+      <svg
+        class="w-6 h-6"
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M19 10V4a1 1 0 0 0-1-1H9.914a1 1 0 0 0-.707.293L5.293 7.207A1 1 0 0 0 5 7.914V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2M10 3v4a1 1 0 0 1-1 1H5m5 6h9m0 0-2-2m2 2-2 2"
+        />
+      </svg>
+      Export CSV
+    </button>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+    <div class="flex items-center">
+      <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+      </svg>
+      <span class="text-red-800 dark:text-red-200">{{ errorMessage }}</span>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-zinc-800 rounded-2xl p-8 shadow-lg mb-8">
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex items-center justify-center py-12">
+      <div class="flex items-center gap-3">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        <span class="text-zinc-600 dark:text-zinc-400">Loading reports...</span>
+      </div>
+    </div>
+
+    <!-- No Results -->
+    <div *ngIf="!isLoading && pagedReports.length === 0" class="text-center py-12">
+      <svg class="mx-auto h-12 w-12 text-zinc-400 dark:text-zinc-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+      </svg>
+      <h3 class="text-lg font-medium text-zinc-900 dark:text-white mb-1">
+        No cheating reports found
+      </h3>
+      <p class="text-zinc-500 dark:text-zinc-400">
+        No cheating reports have been recorded yet.
+      </p>
+    </div>
+
+    <!-- Desktop Table -->
+    <div *ngIf="!isLoading && pagedReports.length > 0" class="hidden md:block overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="text-zinc-500 dark:text-zinc-400 text-base border-b">
+            <th class="pb-4 text-left font-semibold">Report ID</th>
+            <th class="pb-4 text-left font-semibold">Student</th>
+            <th class="pb-4 text-left font-semibold">Exam</th>
+            <th class="pb-4 text-left font-semibold">Timestamp</th>
+            <th class="pb-4 text-left font-semibold">Cheating Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let report of pagedReports" class="text-base border-b border-zinc-100 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all duration-200">
+            <td class="py-4 text-zinc-700 dark:text-zinc-200 font-medium">
+              {{ report.id }}
+            </td>
+            <td class="py-4 text-zinc-600 dark:text-zinc-300">
+              {{ report.studentName || 'Unknown Student' }}
+            </td>
+            <td class="py-4 text-zinc-600 dark:text-zinc-300">
+              {{ report.examTitle || 'Unknown Exam' }}
+            </td>
+            <td class="py-4 text-zinc-500 dark:text-zinc-400">
+              {{ report.timestamp | date:'medium' }}
+            </td>
+            <td class="py-4 text-zinc-500 dark:text-zinc-400">
+              {{ report.cheatingType }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div *ngIf="!isLoading && pagedReports.length > 0" class="md:hidden space-y-4">
+      <div *ngFor="let report of pagedReports" class="bg-white dark:bg-zinc-800 rounded-xl p-4 border border-zinc-200 dark:border-zinc-700 shadow-sm">
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <h4 class="text-lg font-semibold text-zinc-900 dark:text-white">
+              Report #{{ report.id }}
+            </h4>
+            <p class="text-sm text-zinc-600 dark:text-zinc-400">
+              {{ report.examTitle || 'Unknown Exam' }}
+            </p>
+          </div>
+          <div class="text-sm text-zinc-500 dark:text-zinc-400">
+            {{ report.timestamp | date:'medium' }}
+          </div>
+        </div>
+        <div class="text-sm text-zinc-600 dark:text-zinc-400">
+          <strong class="font-medium">Student:</strong> {{ report.studentName || 'Unknown Student' }}
+        </div>
+        <div class="text-sm text-zinc-600 dark:text-zinc-400">
+          <strong class="font-medium">Type:</strong> {{ report.cheatingType }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div *ngIf="!isLoading && totalPages > 1" class="flex justify-center items-center space-x-2 mt-6">
+      <button
+        (click)="previousPage()"
+        [disabled]="currentPage === 1"
+        class="px-3 py-1 border border-zinc-300 dark:border-zinc-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed dark:text-white dark:bg-zinc-700"
+      >
+        Previous
+      </button>
+      <span class="text-zinc-700 dark:text-zinc-200 text-sm">
+        Page {{ currentPage }} of {{ totalPages }}
+      </span>
+      <button
+        (click)="nextPage()"
+        [disabled]="currentPage === totalPages"
+        class="px-3 py-1 border border-zinc-300 dark:border-zinc-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed dark:text-white dark:bg-zinc-700"
+      >
+        Next
+      </button>
+    </div>
+
+  </div>
+</div> 
