@@ -271,4 +271,8 @@ export class DataService {
       `${this.baseUrl}/exams/result/${examId}/${user.id}`
     );
   }
+
+  getUserById(userId: number): Observable<{ id: number; name: string }> {
+    return this.http.get<{ id: number; name: string }>(`${this.baseUrl}/users/${userId}`);
+  }
 }

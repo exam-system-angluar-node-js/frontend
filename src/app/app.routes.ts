@@ -14,6 +14,7 @@ import { AddExamComponent } from './pages/admin/add-exam/add-exam.component';
 import { EditExamComponent } from './pages/admin/edit-exam/edit-exam.component';
 import { ExamsComponent } from './pages/exams/exams.component';
 import { ExamStartComponent } from './pages/exam-start/exam-start.component';
+import { CheatingReportsComponent } from './pages/admin/cheating-reports/cheating-reports.component';
 import { StudentGuard } from './guards/student.guard';
 import { TeacherGuard } from './guards/teacher.guard';
 
@@ -60,6 +61,7 @@ export const routes: Routes = [
       { path: 'allresults', component: AdminResultsComponent },
       { path: 'manage/addexam', component: AddExamComponent },
       { path: 'manage/editexam/:id', component: EditExamComponent },
+      { path: 'cheating-reports', component: CheatingReportsComponent },
     ],
   },
 ];

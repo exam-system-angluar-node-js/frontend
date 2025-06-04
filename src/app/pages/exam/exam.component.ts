@@ -11,6 +11,8 @@ import { Subscription } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { CheatingDetectorService } from '../../services/cheating-detector.service';
+import { AuthService } from '../../services/auth.service';
 
 interface Question {
   id: number;
@@ -64,7 +66,9 @@ export class ExamComponent implements OnInit, OnDestroy {
   constructor(
     private dataService: DataService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private cheatingDetectorService: CheatingDetectorService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -158,6 +162,7 @@ export class ExamComponent implements OnInit, OnDestroy {
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
     }
+    this.cheatingDetectorService.stopDetection();
   }
 
   startTimer(): void {
@@ -168,6 +173,16 @@ export class ExamComponent implements OnInit, OnDestroy {
         this.submitExam();
       }
     }, 1000);
+
+    // Start cheating detection when the timer starts
+    const studentId = this.authService.currentUserValue?.id; // Get student ID
+    const examId = this.filterdExam?.id; // Get exam ID
+
+    if (studentId && examId) {
+      this.cheatingDetectorService.startDetection(studentId, examId);
+    } else {
+      console.error('Could not start cheating detection: Missing student ID or exam ID.');
+    }
   }
 
   formatTime(): string {
@@ -214,6 +229,9 @@ export class ExamComponent implements OnInit, OnDestroy {
       score: percentage,
       answers: this.answers,
     });
+
+    // Stop cheating detection when the exam is submitted
+    this.cheatingDetectorService.stopDetection();
   }
 
   // In your exam component

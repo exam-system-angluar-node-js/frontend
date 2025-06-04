@@ -40,6 +40,12 @@ export class AdminResultsComponent implements OnInit {
   loading: boolean = false;
   error: string | null = null;
 
+  // Pagination properties
+  currentPage = 1;
+  itemsPerPage = 10; // You can adjust this
+  totalPages = 0;
+  pagedFilteredResults: Result[] = []; // Data for the current page after filtering
+
   constructor(
     private adminService: AdminService,
     private examService: ExamService,
@@ -59,7 +65,8 @@ export class AdminResultsComponent implements OnInit {
       next: (response) => {
         // Transform backend data to match frontend interface
         this.results = this.transformBackendData(response.data);
-        this.filteredResults = this.results;
+        // this.filteredResults = this.results; // We'll apply filters and pagination after data load
+        this.applyFilters(); // Apply filters and pagination initially
         this.loading = false;
       },
       error: (error) => {
@@ -69,6 +76,8 @@ export class AdminResultsComponent implements OnInit {
         // Fallback to empty array on error
         this.results = [];
         this.filteredResults = [];
+        this.pagedFilteredResults = [];
+        this.totalPages = 0;
       },
     });
   }
@@ -104,24 +113,33 @@ export class AdminResultsComponent implements OnInit {
   loadResultsForExam(examId: number): void {
     this.loading = true;
     this.error = null;
+    // Reset pagination to the first page when loading new exam results
+    this.currentPage = 1;
 
     this.adminService.getRecentResults(examId).subscribe({
       next: (response) => {
         this.results = this.transformBackendData(response.data);
-        this.filteredResults = this.results;
-        this.applyFilters(); // Reapply current filters
+        // this.filteredResults = this.results; // We'll apply filters and pagination after data load
+        this.applyFilters(); // Reapply current filters and pagination
         this.loading = false;
       },
       error: (error) => {
         console.error('Error loading exam results:', error);
         this.error = 'Failed to load exam results. Please try again.';
         this.loading = false;
+        // Fallback to empty array on error
+        this.results = [];
+        this.filteredResults = [];
+        this.pagedFilteredResults = [];
+        this.totalPages = 0;
       },
     });
   }
 
   // Method to refresh results
   refreshResults(): void {
+    // Reset pagination to the first page when refreshing
+    this.currentPage = 1;
     this.loadResults();
     this.loadExamsForCount();
   }
@@ -129,16 +147,19 @@ export class AdminResultsComponent implements OnInit {
   handleSearch(event: Event): void {
     const inputElement = event.target as HTMLInputElement;
     this.searchQuery = inputElement.value.toLowerCase();
+    this.currentPage = 1; // Reset page on filter change
     this.applyFilters();
   }
 
   handleStatusChange(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
     this.statusFilter = selectElement.value.toLowerCase();
+    this.currentPage = 1; // Reset page on filter change
     this.applyFilters();
   }
 
   applyFilters(): void {
+    // 1. Apply search and status filters to the full results
     this.filteredResults = this.results.filter((result) => {
       const matchesSearch =
         result.user.name.toLowerCase().includes(this.searchQuery) ||
@@ -152,6 +173,41 @@ export class AdminResultsComponent implements OnInit {
 
       return matchesSearch && matchesStatus;
     });
+
+    // 2. Calculate total pages based on filtered results
+    this.totalPages = Math.ceil(this.filteredResults.length / this.itemsPerPage);
+
+    // 3. Ensure current page is valid (e.g., if filtering reduces total pages)
+    if (this.currentPage > this.totalPages && this.totalPages > 0) {
+        this.currentPage = this.totalPages;
+    } else if (this.totalPages === 0) {
+        this.currentPage = 1; // Or 0, depending on how you want to show empty state
+    }
+
+    // 4. Paginate the filtered results
+    this.paginateFilteredResults();
+  }
+
+  // Pagination methods
+  paginateFilteredResults(): void {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    this.pagedFilteredResults = this.filteredResults.slice(startIndex, endIndex);
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.paginateFilteredResults();
+    }
+  }
+
+  nextPage(): void {
+    this.goToPage(this.currentPage + 1);
+  }
+
+  previousPage(): void {
+    this.goToPage(this.currentPage - 1);
   }
 
   // Helper for grade
@@ -177,10 +233,42 @@ export class AdminResultsComponent implements OnInit {
     return { label: 'Average', color: 'yellow' };
   }
 
-  // Method to export results (placeholder for future implementation)
+  // Method to export results
   exportResults(): void {
-    // TODO: Implement export functionality
     console.log('Exporting results...', this.filteredResults);
+
+    if (this.filteredResults.length === 0) {
+      console.warn('No filtered results to export.');
+      return;
+    }
+
+    const replacer = (key: string, value: any) => (value === null ? '' : value); // Handle null values
+    const header = ['Student Name', 'Subject', 'Exam Date', 'Score', 'Grade', 'Status'];
+    const csv = this.filteredResults.map(result => header.map(fieldName => {
+        // Map header names to result object properties
+        switch (fieldName) {
+            case 'Student Name': return JSON.stringify(result.user.name, replacer);
+            case 'Subject': return JSON.stringify(result.exam.title, replacer);
+            case 'Exam Date': return JSON.stringify(this.formatDate(result.createdAt), replacer); // Use formatted date
+            case 'Score': return JSON.stringify(result.score !== null ? `${result.score}/100` : '-', replacer); // Format score
+            case 'Grade': return JSON.stringify(this.getGrade(result.score), replacer); // Use getGrade helper
+            case 'Status': return JSON.stringify(this.getStatus(result).label, replacer); // Use getStatus helper
+            default: return '';
+        }
+    }).join(','));
+
+    csv.unshift(header.join(',')); // Add header row
+    const csvString = csv.join('\r\n');
+
+    const a = document.createElement('a');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    a.setAttribute('href', url);
+    a.setAttribute('download', 'exam-results.csv');
+    a.click();
+
+    URL.revokeObjectURL(url);
   }
 
   // Method to format date for display
