@@ -8,6 +8,7 @@ import { Subscription } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { FocusModeService } from '../../services/focus-mode.service';
 import { AuthService } from '../../services/auth.service';
+import { CheatingDetectorService } from '../../services/cheating-detector.service';
 
 interface ExamQuestion {
   id?: number;
@@ -55,7 +56,8 @@ export class ExamStartComponent implements OnInit, OnDestroy {
     private questionService: QuestionService,
     private toastr: ToastrService,
     private focusModeService: FocusModeService,
-    private authService: AuthService
+    private authService: AuthService,
+    private cheatingDetectorService: CheatingDetectorService
   ) { }
 
   ngOnInit(): void {
@@ -287,6 +289,9 @@ export class ExamStartComponent implements OnInit, OnDestroy {
 
     if (this.timerInterval) clearInterval(this.timerInterval);
 
+    // Stop cheating detection when exam is submitted
+    this.cheatingDetectorService.stopDetection();
+
     this.dataService.submitExam(this.resultId, this.answers).subscribe({
       next: () => {
         this.toastr.success('Exam submitted successfully!', 'Success');
@@ -320,6 +325,16 @@ export class ExamStartComponent implements OnInit, OnDestroy {
         this.submitExam();
       }
     }, 1000);
+
+    // Start cheating detection when the timer starts
+    const studentId = this.authService.currentUserValue?.id; // Get student ID from AuthService
+    const examId = parseInt(this.examId!); // Get exam ID
+
+    if (studentId && examId) {
+      this.cheatingDetectorService.startDetection(studentId, examId);
+    } else {
+      console.error('Could not start cheating detection: Missing student ID or exam ID.');
+    }
   }
 
   formatTime(): string {
@@ -376,6 +391,9 @@ export class ExamStartComponent implements OnInit, OnDestroy {
     if (this.dataSubscription) this.dataSubscription.unsubscribe();
     if (this.examSubscription) this.examSubscription.unsubscribe();
     if (this.questionsSubscription) this.questionsSubscription.unsubscribe();
+
+    // Stop cheating detection when the component is destroyed
+    this.cheatingDetectorService.stopDetection();
   }
 
   disableKeydown(): void {
