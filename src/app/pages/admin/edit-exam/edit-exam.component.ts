@@ -5,6 +5,8 @@ import { CommonModule } from '@angular/common';
 import { QuestionService, Question } from '../../../services/question.service';
 import { ExamService } from '../../../services/exam.service';
 import { ToastrService } from 'ngx-toastr';
+import { forkJoin } from 'rxjs';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-edit-exam',
@@ -33,6 +35,8 @@ export class EditExamComponent implements OnInit {
 
   // Questions list
   questions: Question[] = [];
+  originalQuestions: Question[] = []; // To track changes
+  deletedQuestionIds: number[] = []; // To track deleted questions
 
   constructor(
     private route: ActivatedRoute,
@@ -61,6 +65,7 @@ export class EditExamComponent implements OnInit {
           next: (questions) => {
             console.log('questions', questions);
             this.questions = questions;
+            this.originalQuestions = JSON.parse(JSON.stringify(questions)); // Deep copy
             this.isLoading = false;
           },
           error: (err) => {
@@ -92,12 +97,13 @@ export class EditExamComponent implements OnInit {
     this.questionText = question.title;
     this.choices = [...question.options];
     this.correctAnswer = question.answer;
+    this.points = question.points; // Make sure points are also loaded for editing
     this.showAddQuestionForm = true;
   }
 
   onQuestionSubmit(): void {
-    if (!this.questionText || this.choices.some((choice) => !choice)) {
-      this.toastr.error('Please fill in all fields', 'Error');
+    if (!this.questionText || this.choices.some((choice) => !choice) || this.correctAnswer < 0 || this.correctAnswer >= this.choices.length) {
+      this.toastr.error('Please fill in all fields and select a valid correct answer', 'Error');
       return;
     }
 
@@ -110,7 +116,7 @@ export class EditExamComponent implements OnInit {
     };
 
     if (this.editingQuestion) {
-      // Update existing question
+      // Update existing question in the local array
       const index = this.questions.findIndex(
         (q) => q.id === this.editingQuestion!.id
       );
@@ -120,17 +126,17 @@ export class EditExamComponent implements OnInit {
           ...questionData,
           id: this.editingQuestion.id, // Preserve the ID
         };
-        this.toastr.success('Question updated successfully', 'Success');
+        this.toastr.success('Question updated in list', 'Success');
       }
       this.editingQuestion = null;
     } else {
-      // Add new question
+      // Add new question to the local array with a temporary ID
       const newQuestion: Question = {
         ...questionData,
         id: Date.now(), // Use timestamp as temporary ID
       };
       this.questions.push(newQuestion);
-      this.toastr.success('Question added successfully', 'Success');
+      this.toastr.success('Question added to list', 'Success');
     }
 
     // Reset form and hide it
@@ -147,76 +153,101 @@ export class EditExamComponent implements OnInit {
     this.errorMessage = '';
   }
 
-  deleteQuestion(questionId: number): void {
+  deleteQuestion(questionId: number | undefined): void {
+    if (questionId === undefined) return;
+
     if (confirm('Are you sure you want to delete this question?')) {
+      // If the question has a real ID, add it to the deletedQuestionIds array
+      if (questionId < 1000000) { // Assuming temporary IDs are large timestamps
+        this.deletedQuestionIds.push(questionId);
+      }
+      // Remove the question from the local array
       this.questions = this.questions.filter((q) => q.id !== questionId);
-      this.toastr.success('Question deleted successfully', 'Success');
+      this.toastr.success('Question marked for deletion', 'Success');
     }
   }
 
   saveExam(): void {
+    this.isLoading = true;
+    this.errorMessage = null;
+
     const examUpdatePayload = {
       title: this.examTitle,
       description: this.examDescription,
-      timeLimit: this.timeLimit,
+      duration: this.timeLimit, // Corrected key to 'duration'
     };
 
-    this.examService
-      .updateExam(parseInt(this.examId), examUpdatePayload)
-      .subscribe({
-        next: (updatedExam) => {
-          console.log('Exam updated, saving questions...', this.questions);
+    // 1. Update Exam Details
+    this.examService.updateExam(parseInt(this.examId), examUpdatePayload).subscribe({
+      next: (updatedExam) => {
+        console.log('Exam details updated.');
 
-          // Separate new questions from existing ones
-          const existingQuestions = this.questions.filter(q => q.id && q.id < 1000000); // Real IDs are small numbers
-          const newQuestions = this.questions.filter(q => q.id && q.id >= 1000000); // Temporary IDs are timestamps
+        // 2. Handle Questions (Add, Update, Delete)
+        const questionsToProcess: Observable<any>[] = [];
 
-          // First update existing questions
-          const updatePromises = existingQuestions.map(question => 
-            this.questionService.updateQuestion(question).toPromise()
-          );
+        // Questions to Delete
+        this.deletedQuestionIds.forEach(questionId => {
+          console.log('Deleting question with ID:', questionId);
+          questionsToProcess.push(this.questionService.deleteQuestion(questionId));
+        });
 
-          // Then add new questions
-          if (newQuestions.length > 0) {
-            // Remove temporary IDs before sending to server
-            const questionsToAdd = newQuestions.map(({ id, ...question }) => question);
-            
-            this.questionService
-              .addQuestions(parseInt(this.examId), questionsToAdd)
-              .subscribe({
-                next: (res) => {
-                  console.log('New questions saved', res);
-                  this.toastr.success(
-                    'Exam changes saved successfully',
-                    'Success'
-                  );
-
-                  // Navigate back to manage page after successful save
-                  setTimeout(() => {
-                    this.router.navigate(['/teacher/manage']);
-                  }, 1500);
-                },
-                error: (err) => {
-                  console.error('Failed to save new questions', err);
-                  this.toastr.error('Failed to save new questions', 'Error');
-                },
-              });
+        // Questions to Add and Update
+        this.questions.forEach(question => {
+          if (question.id && question.id < 1000000) {
+            // Existing question - check if modified
+            const originalQuestion = this.originalQuestions.find(q => q.id === question.id);
+            if (originalQuestion && JSON.stringify(question) !== JSON.stringify(originalQuestion)) {
+              console.log('Updating question with ID:', question.id);
+              questionsToProcess.push(this.questionService.updateQuestion(question));
+            }
           } else {
-            this.toastr.success(
-              'Exam changes saved successfully',
-              'Success'
-            );
-
-            // Navigate back to manage page after successful save
-            setTimeout(() => {
-              this.router.navigate(['/teacher/manage']);
-            }, 1500);
+            // New question with temporary ID - add it
+            const { id, ...questionToAdd } = question; // Remove temporary ID
+            console.log('Adding new question:', questionToAdd);
+            // Add new questions in a batch after updates/deletions
           }
-        },
-        error: (err) => {
-          console.error('Failed to update exam', err);
-          this.toastr.error('Failed to update exam details', 'Error');
-        },
-      });
+        });
+
+        // Collect new questions to add in a batch
+        const newQuestionsToAdd = this.questions
+          .filter(q => q.id && q.id >= 1000000) // Filter for temporary IDs
+          .map(({ id, ...question }) => question); // Remove temporary IDs
+
+        if (newQuestionsToAdd.length > 0) {
+          console.log('Adding new questions in batch:', newQuestionsToAdd);
+          questionsToProcess.push(this.questionService.addQuestions(parseInt(this.examId), newQuestionsToAdd));
+        }
+
+        // Execute all question-related operations
+        if (questionsToProcess.length > 0) {
+          forkJoin(questionsToProcess).subscribe({
+            next: () => {
+              console.log('All question operations completed.');
+              this.toastr.success('Exam and questions saved successfully', 'Success');
+              this.isLoading = false;
+              this.router.navigate(['/teacher/manage']);
+            },
+            error: (err) => {
+              console.error('Failed to save questions', err);
+              this.errorMessage = 'Failed to save questions';
+              this.toastr.error('Failed to save questions', 'Error');
+              this.isLoading = false;
+            }
+          });
+        } else {
+          // No question changes, just exam details updated
+          this.toastr.success('Exam details saved successfully', 'Success');
+          this.isLoading = false;
+          this.router.navigate(['/teacher/manage']);
+        }
+
+      },
+      error: (err) => {
+        console.error('Failed to update exam details', err);
+        this.errorMessage = 'Failed to update exam details';
+        this.toastr.error('Failed to update exam details', 'Error');
+        this.isLoading = false;
+      },
+    });
   }
 }

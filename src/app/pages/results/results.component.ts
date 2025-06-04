@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LgcardComponent } from '../../shared/components/lgcard/lgcard.component';
 import { DataService, StudentExamResult } from '../../services/data.service';
+import { ExamService } from '../../services/exam.service';
+import { ExamCountService } from '../../services/exam-count.service';
 
 interface ResultCardData {
   id: number;
@@ -23,10 +25,15 @@ export class ResultsComponent implements OnInit {
   loading = true;
   error: string | null = null;
 
-  constructor(private dataService: DataService) {}
+  constructor(
+    private dataService: DataService,
+    private examService: ExamService,
+    private examCountService: ExamCountService
+  ) {}
 
   ngOnInit(): void {
     this.loadResults();
+    this.loadExamsForCount();
   }
 
   private loadResults(): void {
@@ -42,7 +49,16 @@ export class ResultsComponent implements OnInit {
         console.error('Error loading results:', error);
         this.error = 'Failed to load results. Please try again.';
         this.loading = false;
+        // Fallback to empty array on error
+        this.results = [];
       },
+    });
+  }
+
+  private loadExamsForCount(): void {
+    // Fetch exams for the student exam count in the sidebar
+    this.examService.getAllExamsForStudent().subscribe(exams => {
+      this.examCountService.updateStudentExamCount(exams ?? []);
     });
   }
 
@@ -84,5 +100,11 @@ export class ResultsComponent implements OnInit {
 
   onRetry(): void {
     this.loadResults();
+    this.loadExamsForCount();
+  }
+
+  // Assuming you have an applyFilters method in this component
+  applyFilters(): void {
+    // Add your filtering logic here if needed
   }
 }

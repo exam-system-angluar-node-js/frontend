@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AdminService, RecentResult } from '../../../services/admin.service';
+import { ExamService } from '../../../services/exam.service';
+import { ExamCountService } from '../../../services/exam-count.service';
 
 interface User {
   id: number;
@@ -38,10 +40,15 @@ export class AdminResultsComponent implements OnInit {
   loading: boolean = false;
   error: string | null = null;
 
-  constructor(private adminService: AdminService) {}
+  constructor(
+    private adminService: AdminService,
+    private examService: ExamService,
+    private examCountService: ExamCountService
+  ) {}
 
   ngOnInit(): void {
     this.loadResults();
+    this.loadExamsForCount();
   }
 
   private loadResults(): void {
@@ -63,6 +70,13 @@ export class AdminResultsComponent implements OnInit {
         this.results = [];
         this.filteredResults = [];
       },
+    });
+  }
+
+  private loadExamsForCount(): void {
+    // Fetch exams for the admin exam count in the sidebar
+    this.examService.getAllExamsForTeacher().subscribe(exams => {
+      this.examCountService.updateAdminExamCount(exams?.length ?? 0);
     });
   }
 
@@ -109,6 +123,7 @@ export class AdminResultsComponent implements OnInit {
   // Method to refresh results
   refreshResults(): void {
     this.loadResults();
+    this.loadExamsForCount();
   }
 
   handleSearch(event: Event): void {

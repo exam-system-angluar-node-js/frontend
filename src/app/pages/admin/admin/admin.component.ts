@@ -11,6 +11,8 @@ import {
 } from '../../../services/admin.service';
 import { AuthService } from '../../../services/auth.service';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
+import { ExamService } from '../../../services/exam.service';
+import { ExamCountService } from '../../../services/exam-count.service';
 
 Chart.register(...registerables);
 
@@ -41,9 +43,6 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   recentResults: RecentResult[] = [];
 
   // UI state
-  selectedExamId: number | null = null;
-  selectedExam: ExamResult | null = null;
-  filteredResults: RecentResult[] = [];
   loading = true;
   error: string | null = null;
 
@@ -54,7 +53,9 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private adminService: AdminService,
-    private authService: AuthService
+    private authService: AuthService,
+    private examService: ExamService,
+    private examCountService: ExamCountService
   ) {
     // Initialize user information
     this.initializeUserInfo();
@@ -62,6 +63,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadDashboardData();
+    this.loadExamsForCount();
   }
 
   ngAfterViewInit(): void {
@@ -82,6 +84,13 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     console.log('Current user:', this.currentUser);
     console.log('Teacher name:', this.teacherName);
+  }
+
+  private loadExamsForCount(): void {
+    // Fetch exams for the admin exam count in the sidebar
+    this.examService.getAllExamsForTeacher().subscribe(exams => {
+      this.examCountService.updateAdminExamCount(exams?.length ?? 0);
+    });
   }
 
   private waitForDataAndInitCharts(): void {
@@ -143,7 +152,6 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
           this.dashboardStats = data.stats.data;
           this.examResults = data.examResults;
           this.recentResults = data.recentResults.data;
-          this.filteredResults = [...this.recentResults];
           this.loading = false;
           this.dataLoaded = true;
 
@@ -159,86 +167,8 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
       });
   }
 
-  onExamChange(): void {
-    console.log('Exam selection changed to:', this.selectedExamId);
-
-    // Update selected exam reference
-    this.selectedExam = this.selectedExamId
-      ? this.examResults.find((e) => e.id === this.selectedExamId) || null
-      : null;
-
-    console.log('Selected exam object:', this.selectedExam);
-
-    // Load filtered data if exam is selected
-    if (this.selectedExamId) {
-      this.loadFilteredData(this.selectedExamId);
-    } else {
-      // Reset to show all data
-      this.filteredResults = [...this.recentResults];
-      this.recreateCharts();
-    }
-  }
-
-  private loadFilteredData(examId: number): void {
-    console.log('Loading filtered data for examId:', examId);
-
-    this.adminService
-      .getRecentResults(examId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (data) => {
-          console.log('Filtered data received:', data);
-          this.filteredResults = data.data;
-          this.error = null;
-
-          // Recreate charts with new data
-          this.recreateCharts();
-        },
-        error: (error) => {
-          console.error('Error loading filtered data:', error);
-
-          if (error.status === 404) {
-            this.error = 'Exam results not found';
-          } else if (error.status === 0) {
-            this.error = 'Unable to connect to server';
-          } else {
-            this.error = 'Failed to load filtered data';
-          }
-
-          // Fallback to client-side filtering
-          console.log('Falling back to client-side filtering');
-          this.filterResults();
-          this.recreateCharts();
-        },
-      });
-  }
-
-  private filterResults(): void {
-    if (this.selectedExamId && this.selectedExam) {
-      this.filteredResults = this.recentResults.filter(
-        (result) => result.exam.title === this.selectedExam?.exam.title
-      );
-    } else {
-      this.filteredResults = [...this.recentResults];
-    }
-    console.log('Filtered results:', this.filteredResults.length);
-  }
-
-  private recreateCharts(): void {
-    console.log('Recreating charts...');
-
-    // Destroy existing charts
-    this.destroyCharts();
-
-    // Wait a bit for cleanup, then recreate
-    setTimeout(() => {
-      this.initializeCharts();
-    }, 200);
-  }
-
   private initializeCharts(): void {
     console.log('Initializing charts...');
-    console.log('Current displayPassRate:', this.displayPassRate);
 
     // Check if canvas elements exist
     const resultsCanvas = document.getElementById(
@@ -249,260 +179,82 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     ) as HTMLCanvasElement;
 
     if (!resultsCanvas || !activityCanvas) {
-      console.warn('Canvas elements not found');
+      console.warn('Chart canvas not found.');
       return;
     }
 
-    try {
-      // Create Results Chart (Enhanced Doughnut with better styling)
-      const passRate = this.displayPassRate;
-      const failRate = 100 - passRate;
-
-      console.log('Creating results chart with data:', [passRate, failRate]);
-
-      this.resultsChart = new Chart(resultsCanvas, {
-        type: 'doughnut',
-        data: {
-          labels: ['Passed', 'Failed'],
-          datasets: [
-            {
-              data: [passRate, failRate],
-              backgroundColor: [
-                'rgba(16, 185, 129, 0.8)', // Green for passed
-                'rgba(239, 68, 68, 0.8)', // Red for failed
-              ],
-              borderColor: ['rgb(16, 185, 129)', 'rgb(239, 68, 68)'],
-              borderWidth: 2,
-              hoverOffset: 8,
-              hoverBorderWidth: 3,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '70%',
-          plugins: {
-            legend: {
-              position: 'bottom',
-              labels: {
-                color: '#6b7280',
-                font: {
-                  size: 14,
-                  weight: 'bold',
-                },
-                padding: 20,
-                usePointStyle: true,
-                pointStyle: 'circle',
-              },
-            },
-            tooltip: {
-              backgroundColor: 'rgba(0, 0, 0, 0.8)',
-              padding: 12,
-              titleFont: {
-                size: 14,
-                weight: 'bold',
-              },
-              bodyFont: {
-                size: 13,
-              },
-              cornerRadius: 8,
-              callbacks: {
-                label: (context) => {
-                  const label = context.label || '';
-                  const value = context.parsed || 0;
-                  return `${label}: ${value.toFixed(1)}%`;
-                },
-              },
-            },
-          },
-          animation: {
-            animateScale: true,
-            animateRotate: true,
-            duration: 1000,
-          },
-        },
-      });
-
-      // Create Activity Chart (Enhanced Line Chart with better styling)
-      const activityData = this.generateActivityData();
-      console.log('Creating activity chart with data:', activityData);
-
-      this.activityChart = new Chart(activityCanvas, {
-        type: 'line',
-        data: {
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-          datasets: [
-            {
-              label: 'Exam Attempts',
-              data: activityData,
-              borderColor: 'rgb(99, 102, 241)',
-              backgroundColor: 'rgba(99, 102, 241, 0.1)',
-              tension: 0.4,
-              fill: true,
-              pointBackgroundColor: 'rgb(99, 102, 241)',
-              pointBorderColor: '#fff',
-              pointBorderWidth: 3,
-              pointRadius: 5,
-              pointHoverRadius: 8,
-              pointHoverBorderWidth: 4,
-              borderWidth: 3,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: {
-            intersect: false,
-            mode: 'index',
-          },
-          plugins: {
-            legend: {
-              display: false,
-            },
-            tooltip: {
-              backgroundColor: 'rgba(0, 0, 0, 0.8)',
-              padding: 12,
-              titleFont: {
-                size: 14,
-                weight: 'bold',
-              },
-              bodyFont: {
-                size: 13,
-              },
-              cornerRadius: 8,
-              callbacks: {
-                label: (context) =>
-                  `${context.dataset.label}: ${context.raw} attempts`,
-              },
-            },
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: {
-                color: 'rgba(0, 0, 0, 0.05)',
-                display: true,
-              },
-              ticks: {
-                color: '#6b7280',
-                font: {
-                  size: 12,
-                },
-                padding: 10,
-              },
-              title: {
-                display: true,
-                text: 'Number of Attempts',
-                font: {
-                  size: 14,
-                  weight: 'bold',
-                },
-                color: '#4b5563',
-                padding: { top: 10, bottom: 10 },
-              },
-            },
-            x: {
-              grid: {
-                display: false,
-              },
-              ticks: {
-                color: '#6b7280',
-                font: {
-                  size: 12,
-                },
-                padding: 10,
-              },
-            },
-          },
-          animation: {
-            duration: 1000,
-            easing: 'easeInOutQuart',
-          },
-        },
-      });
-
-      console.log('Charts created successfully');
-    } catch (error) {
-      console.error('Error creating charts:', error);
-      this.destroyCharts();
+    // Ensure data is loaded before initializing charts
+    if (!this.dataLoaded || this.loading) {
+      console.log('Data not yet loaded for charts.');
+      return;
     }
+
+    // Prepare data for charts
+    const examTitles = this.examResults.map(exam => exam.exam.title);
+    const totalAttempts = this.examResults.map(exam => exam.totalAttempts);
+    const overallPassRate = this.dashboardStats?.overallPassRate || 0;
+    const overallFailRate = 100 - overallPassRate;
+
+    // Create Overall Pass Rate Chart (Pie Chart)
+    this.resultsChart = new Chart(resultsCanvas, {
+      type: 'pie',
+      data: {
+        labels: ['Passed', 'Failed'],
+        datasets: [
+          {
+            data: [overallPassRate, overallFailRate],
+            backgroundColor: ['#4CAF50', '#F44336'], // Green and Red
+            borderColor: ['#ffffff', '#ffffff'],
+            borderWidth: 2,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' },
+          title: { display: true, text: 'Overall Pass Rate' }
+        },
+      },
+    });
+
+    // Create Exam Attempts Chart (Bar Chart)
+    this.activityChart = new Chart(activityCanvas, {
+      type: 'bar',
+      data: {
+        labels: examTitles,
+        datasets: [
+          {
+            label: 'Total Attempts',
+            data: totalAttempts,
+            backgroundColor: '#3F51B5', // Indigo
+            borderColor: '#3F51B5',
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { beginAtZero: true, title: { display: true, text: 'Number of Attempts' } },
+          x: { title: { display: true, text: 'Exam Title' } }
+        },
+        plugins: {
+          legend: { display: false },
+          title: { display: true, text: 'Exam Attempts' }
+        }
+      },
+    });
   }
 
-  private generateActivityData(): number[] {
-    if (this.examResults.length === 0) {
-      return [5, 8, 12, 15, 10];
-    }
-
-    let baseData: number[];
-
-    if (this.selectedExam && this.selectedExam.totalAttempts > 0) {
-      // Use selected exam data
-      const examAttempts = this.selectedExam.totalAttempts;
-      const avgAttempts = Math.max(1, Math.floor(examAttempts / 5));
-
-      baseData = [
-        Math.max(1, avgAttempts - Math.floor(avgAttempts * 0.3)),
-        Math.max(1, avgAttempts - Math.floor(avgAttempts * 0.1)),
-        Math.max(1, avgAttempts + Math.floor(avgAttempts * 0.2)),
-        Math.max(1, avgAttempts + Math.floor(avgAttempts * 0.1)),
-        avgAttempts,
-      ];
-
-      console.log(
-        'Activity data for selected exam:',
-        this.selectedExam.exam.title,
-        baseData
-      );
-    } else {
-      // Use overall data
-      const totalAttempts = this.examResults.reduce(
-        (sum, exam) => sum + exam.totalAttempts,
-        0
-      );
-
-      if (totalAttempts === 0) {
-        return [5, 8, 12, 15, 10];
-      }
-
-      const avgAttempts = Math.max(
-        1,
-        Math.floor(totalAttempts / (5 * this.examResults.length))
-      );
-
-      baseData = [
-        Math.max(1, avgAttempts - 3),
-        Math.max(1, avgAttempts + 2),
-        Math.max(1, avgAttempts - 1),
-        Math.max(1, avgAttempts + 4),
-        avgAttempts,
-      ];
-
-      console.log('Activity data for all exams:', baseData);
-    }
-
-    return baseData;
-  }
-
-  // Helper methods for template
   get totalQuestions(): number {
     return this.dashboardStats?.totalQuestions || 0;
   }
 
   get averageScore(): number {
-    if (this.examResults.length === 0) return 0;
-
-    if (this.selectedExam) {
-      return this.selectedExam.averageScore || 0;
-    }
-
-    return Math.round(
-      this.examResults.reduce(
-        (sum, exam) => sum + (exam.averageScore || 0),
-        0
-      ) / this.examResults.length
-    );
+    return this.dashboardStats?.overallPassRate || 0;
   }
 
   get totalStudents(): number {
@@ -510,26 +262,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get displayPassRate(): number {
-    if (this.selectedExam) {
-      const passRate =
-        this.selectedExam.totalAttempts > 0
-          ? Math.round(
-              (this.selectedExam.passedAttempts /
-                this.selectedExam.totalAttempts) *
-                100
-            )
-          : 0;
-      console.log(
-        `Selected exam "${this.selectedExam.exam.title}" pass rate:`,
-        passRate,
-        `(${this.selectedExam.passedAttempts}/${this.selectedExam.totalAttempts})`
-      );
-      return passRate;
-    }
-
-    const overallRate = this.dashboardStats?.overallPassRate || 0;
-    console.log('Overall pass rate:', overallRate);
-    return overallRate;
+    return this.dashboardStats?.overallPassRate || 0;
   }
 
   get displayTotalQuestions(): number {
@@ -537,16 +270,9 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   refreshData(): void {
-    console.log('Refreshing data...');
-    this.selectedExamId = null;
-    this.selectedExam = null;
-    this.destroyCharts();
+    console.log('Refreshing dashboard data...');
     this.loadDashboardData();
-  }
-
-  // TrackBy functions for performance optimization
-  trackByExamId(index: number, exam: ExamResult): number {
-    return exam.id;
+    this.loadExamsForCount();
   }
 
   trackByResultId(index: number, result: RecentResult): number {

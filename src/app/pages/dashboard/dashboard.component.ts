@@ -10,6 +10,8 @@ import {
   ExamData,
 } from '../../services/data.service';
 import { AuthService } from '../../services/auth.service';
+import { ExamService } from '../../services/exam.service';
+import { ExamCountService } from '../../services/exam-count.service';
 
 Chart.register(...registerables);
 
@@ -41,12 +43,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private performanceChart: Chart | null = null;
   private categoryChart: Chart | null = null;
 
-  constructor(private dataService: DataService, private authService: AuthService) {
+  constructor(
+    private dataService: DataService,
+    private authService: AuthService,
+    private examService: ExamService,
+    private examCountService: ExamCountService
+  ) {
     this.initializeUserInfo();
   }
 
   ngOnInit() {
     this.loadDashboardData();
+    this.loadExamsForCount();
   }
 
   private initializeUserInfo(): void {
@@ -57,18 +65,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
     console.log('Current user:', this.currentUser);
     console.log('Teacher name:', this.studentName);
   }
+
   ngOnDestroy() {
     this.performanceChart?.destroy();
     this.categoryChart?.destroy();
   }
 
+  private loadExamsForCount(): void {
+    // Fetch exams for the student exam count in the sidebar
+    this.examService.getAllExamsForStudent().subscribe(exams => {
+      this.examCountService.updateStudentExamCount(exams ?? []);
+    });
+  }
+
   // Add missing methods that the template calls
   refreshData() {
     this.loadDashboardData();
+    this.loadExamsForCount();
   }
 
   retryLoadData() {
     this.loadDashboardData();
+    this.loadExamsForCount();
   }
 
   calculateAccuracy(): number {
@@ -259,21 +277,27 @@ export class DashboardComponent implements OnInit, OnDestroy {
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: (context) => `Average: ${context.raw}%`,
-              },
-            },
-          },
           scales: {
             y: {
               beginAtZero: true,
               max: 100,
-              title: {
-                display: true,
-                text: 'Performance (%)',
+              title: { display: true, text: 'Average Score' },
+            },
+            x: { title: { display: true, text: 'Category' } },
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              padding: 12,
+              titleColor: '#fff',
+              titleFont: { size: 14, weight: 'bold' },
+              bodyColor: '#fff',
+              bodyFont: { size: 13 },
+              callbacks: {
+                label: (context) => {
+                  return `${context.dataset.label}: ${context.raw}%`;
+                },
               },
             },
           },
@@ -288,33 +312,33 @@ export class DashboardComponent implements OnInit, OnDestroy {
     background: string[];
     border: string[];
   } {
-    const baseColors = [
-      { bg: 'rgba(79, 75, 230, 0.8)', border: 'rgb(79, 75, 230)' },
-      { bg: 'rgba(16, 185, 129, 0.8)', border: 'rgb(16, 185, 129)' },
-      { bg: 'rgba(245, 158, 11, 0.8)', border: 'rgb(245, 158, 11)' },
-      { bg: 'rgba(239, 68, 68, 0.8)', border: 'rgb(239, 68, 68)' },
-      { bg: 'rgba(147, 51, 234, 0.8)', border: 'rgb(147, 51, 234)' },
-      { bg: 'rgba(59, 130, 246, 0.8)', border: 'rgb(59, 130, 246)' },
+    const palette = [
+      '#A78BFA', // purple-400
+      '#818CF8', // indigo-400
+      '#60A5FA', // blue-400
+      '#4ADE80', // green-400
+      '#FACC15', // yellow-400
+      '#FB923C', // orange-400
+      '#F87171', // red-400
     ];
 
-    const background: string[] = [];
-    const border: string[] = [];
+    const backgroundColors: string[] = [];
+    const borderColors: string[] = [];
 
     for (let i = 0; i < count; i++) {
-      const color = baseColors[i % baseColors.length];
-      background.push(color.bg);
-      border.push(color.border);
+      const color = palette[i % palette.length];
+      backgroundColors.push(`${color.slice(0, 7)}D9`); // Add 80% opacity
+      borderColors.push(color);
     }
 
-    return { background, border };
+    return { background: backgroundColors, border: borderColors };
   }
 
   formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch {
+      return dateString; // Return original string if parsing fails
+    }
   }
 }

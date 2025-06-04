@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { ExamService } from '../../../services/exam.service';
 import { ToastrService } from 'ngx-toastr';
 import { ConfirmModalComponent } from '../../../shared/components/confirm-modal/confirm-modal.component';
+import { ExamCountService } from '../../../services/exam-count.service';
 
 @Component({
   selector: 'app-admin-manage',
@@ -19,16 +20,19 @@ export class AdminManageComponent implements OnInit {
   exams: any[] = [];
   showDeleteModal = false;
   examToDelete: number | null = null;
+  isDeleting = false;
 
   constructor(
     private examService: ExamService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private examCountService: ExamCountService
   ) {}
 
   ngOnInit(): void {
-    this.examService.getAllExams().subscribe((exams) => {
+    this.examService.getAllExamsForTeacher().subscribe((exams) => {
       this.exams = exams ?? [];
       this.filteredExams = exams ?? [];
+      this.examCountService.updateAdminExamCount(this.exams.length);
       console.log('filtered', this.filteredExams);
     });
   }
@@ -40,24 +44,30 @@ export class AdminManageComponent implements OnInit {
 
   onDeleteConfirm(): void {
     if (this.examToDelete) {
+      this.isDeleting = true;
       const exam = this.exams.find((e) => e.id === this.examToDelete);
 
-      // Call the exam service to delete the exam
-      // this.examService.deleteExam(this.examToDelete).subscribe({
-      //   next: () => {
-      //     this.exams = this.exams.filter(
-      //       (exam) => exam.id !== this.examToDelete
-      //     );
-      //     this.applyFilters();
-      //     this.toastr.success(`${exam?.title} has been deleted`, '✅ Deleted');
-      //   },
-      //   error: (error) => {
-      //     console.error('Error deleting exam:', error);
-      //     this.toastr.error('Failed to delete exam', '❌ Error');
-      //   },
-      // });
+      this.examService.deleteExam(this.examToDelete).subscribe({
+        next: () => {
+          this.exams = this.exams.filter(
+            (exam) => exam.id !== this.examToDelete
+          );
+          this.filteredExams = this.filteredExams.filter(
+            (exam) => exam.id !== this.examToDelete
+          );
+          this.examCountService.updateAdminExamCount(this.exams.length);
+          this.toastr.success(`${exam?.title} has been deleted`, '✅ Deleted');
+        },
+        error: (error) => {
+          console.error('Error deleting exam:', error);
+          this.toastr.error('Failed to delete exam', '❌ Error');
+        },
+        complete: () => {
+          this.isDeleting = false;
+          this.closeModal();
+        }
+      });
     }
-    this.closeModal();
   }
 
   onDeleteCancel(): void {
@@ -77,7 +87,7 @@ export class AdminManageComponent implements OnInit {
 
   handleCategoryChange(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
-    this.category = selectElement.value.toLowerCase();
+    this.category = selectElement.value;
     this.applyFilters();
   }
 
@@ -86,8 +96,12 @@ export class AdminManageComponent implements OnInit {
       const matchesSearch = exam.title.toLowerCase().includes(this.searchExam);
       const matchesCategory =
         this.category === 'all' ||
-        exam.category.toLowerCase() === this.category;
+        exam.category?.toLowerCase() === this.category.toLowerCase();
       return matchesSearch && matchesCategory;
     });
+  }
+
+  hasActiveFilters(): boolean {
+    return this.searchExam !== '' || this.category !== 'all';
   }
 }
