@@ -1,5 +1,5 @@
 // admin.component.ts - Merged version with service integration and improved functionality
-import { Component, AfterViewInit, OnInit, OnDestroy } from '@angular/core';
+import { Component, AfterViewInit, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -13,6 +13,7 @@ import { AuthService } from '../../../services/auth.service';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { ExamService } from '../../../services/exam.service';
 import { ExamCountService } from '../../../services/exam-count.service';
+import { Router } from '@angular/router';
 
 Chart.register(...registerables);
 
@@ -55,7 +56,9 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     private adminService: AdminService,
     private authService: AuthService,
     private examService: ExamService,
-    private examCountService: ExamCountService
+    private examCountService: ExamCountService,
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {
     // Initialize user information
     this.initializeUserInfo();
@@ -67,8 +70,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Wait for data to be loaded before initializing charts
-    this.waitForDataAndInitCharts();
+    // Do nothing here; charts will be initialized after data and view are ready
   }
 
   ngOnDestroy(): void {
@@ -91,19 +93,6 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     this.examService.getAllExamsForTeacher().subscribe(exams => {
       this.examCountService.updateAdminExamCount(exams?.length ?? 0);
     });
-  }
-
-  private waitForDataAndInitCharts(): void {
-    const checkDataAndInit = () => {
-      if (this.dataLoaded && !this.loading) {
-        setTimeout(() => {
-          this.initializeCharts();
-        }, 100);
-      } else {
-        setTimeout(checkDataAndInit, 100);
-      }
-    };
-    checkDataAndInit();
   }
 
   private destroyCharts(): void {
@@ -147,19 +136,17 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
-          console.log('Dashboard data loaded:', data);
-
-          this.dashboardStats = data.stats.data;
+          const result = data.stats.data;
+          const stats = (result as any).data ? (result as any).data : result;
+          this.dashboardStats = stats ?? this.dashboardStats;
           this.examResults = data.examResults;
           this.recentResults = data.recentResults.data;
           this.loading = false;
           this.dataLoaded = true;
-
-          console.log('Data loaded - dashboardStats:', this.dashboardStats);
-          console.log('Data loaded - examResults:', this.examResults);
+          this.cdr.detectChanges();
+          this.initializeCharts();
         },
         error: (error) => {
-          console.error('Error loading dashboard data:', error);
           this.error = 'Failed to load dashboard data';
           this.loading = false;
           this.dataLoaded = false;
@@ -168,15 +155,12 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initializeCharts(): void {
-    console.log('Initializing charts...');
+    // Destroy previous chart instances
+    this.destroyCharts();
 
     // Check if canvas elements exist
-    const resultsCanvas = document.getElementById(
-      'resultsChart'
-    ) as HTMLCanvasElement;
-    const activityCanvas = document.getElementById(
-      'activityChart'
-    ) as HTMLCanvasElement;
+    const resultsCanvas = document.getElementById('resultsChart') as HTMLCanvasElement;
+    const activityCanvas = document.getElementById('activityChart') as HTMLCanvasElement;
 
     if (!resultsCanvas || !activityCanvas) {
       console.warn('Chart canvas not found.');
@@ -185,7 +169,6 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Ensure data is loaded before initializing charts
     if (!this.dataLoaded || this.loading) {
-      console.log('Data not yet loaded for charts.');
       return;
     }
 
@@ -270,7 +253,6 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   refreshData(): void {
-    console.log('Refreshing dashboard data...');
     this.loadDashboardData();
     this.loadExamsForCount();
   }

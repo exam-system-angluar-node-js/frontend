@@ -12,7 +12,21 @@
         Add New Exam
       </a>
     </div>
-    @if(exams.length >= 1){
+
+      @if (isLoading) {
+  <div class="flex flex-col items-center justify-center p-12">
+    <div class="relative">
+      <div class="w-16 h-16 border-4 border-purple-200 dark:border-purple-800 rounded-full animate-spin"></div>
+      <div
+        class="absolute top-0 left-0 w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin">
+      </div>
+    </div>
+    <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-400">
+      Loading exams...
+    </p>
+  </div>
+  }
+    @if(!isLoading&&exams.length >= 1){
     <div class="flex flex-col sm:flex-row justify-between gap-4 mb-8">
       <input (input)="handleSearch($event)" type="text" placeholder="Search exams..."
         class="w-full sm:w-80 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-purple-600 focus:outline-none transition" />
@@ -26,7 +40,7 @@
     </div>
     }
     <div class="grid justify-center sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      @if (filteredExams.length > 0) {
+      @if (!isLoading&&filteredExams.length > 0) {
       @for (exam of filteredExams; track exam.id) {
       <app-card [id]="exam.id" [title]="exam.title" [description]="exam.description"
         [questionsCount]="exam.questions?.length || exam.questionsCount || 0" [manage]="true" [category]="exam.category"
@@ -53,7 +67,8 @@
           Try adjusting your search or category.
         </p>
         } @else {
-        <div class="relative w-48 h-48 mb-3">
+          @if (!isLoading) {
+                    <div class="relative w-48 h-48 mb-3">
           <div class="absolute inset-0 bg-indigo-100 dark:bg-indigo-900/30 rounded-full opacity-60 animate-pulse"></div>
           <svg class="relative w-full h-full text-indigo-400 dark:text-indigo-500" fill="none" stroke="currentColor"
             viewBox="-2 -2 28 28" xmlns="http://www.w3.org/2000/svg">
@@ -71,6 +86,7 @@
         <p class="text-gray-600 dark:text-gray-500 text-md  max-w-md mb-3">
           Click the button to create your first exam.
         </p>
+          }
         }
 
 
