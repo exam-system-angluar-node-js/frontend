@@ -4,7 +4,7 @@
       Tolab Results
     </h1>
     <button (click)="refreshResults()" [disabled]="loading"
-      class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-medium rounded-lg transition-colors duration-200">
+      class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-medium rounded-lg transition-colors duration-200">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
           d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
@@ -87,15 +87,21 @@
     </div>
 
     <!-- Loading State -->
-    <div *ngIf="loading" class="flex items-center justify-center py-12">
-      <div class="flex items-center gap-3">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-        <span class="text-zinc-600 dark:text-zinc-400">Loading results...</span>
+     @if (loading) {
+  <div class="flex flex-col items-center justify-center p-12">
+    <div class="relative">
+      <div class="w-16 h-16 border-4 border-purple-200 dark:border-purple-800 rounded-full animate-spin"></div>
+      <div
+        class="absolute top-0 left-0 w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin">
       </div>
     </div>
-
+    <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-400">
+      Loading tolab results...
+    </p>
+  </div>
+  }
     <!-- No Results -->
-    @if (filteredResults.length === 0) {
+    @if (!loading&&filteredResults.length === 0) {
     <div class="flex flex-col items-center justify-center p-8 text-center">
       <div class="relative w-48 h-48 mb-3">
         <div class="absolute inset-0 bg-indigo-100 dark:bg-indigo-900/30 rounded-full opacity-60 animate-pulse"></div>
@@ -257,14 +263,14 @@
     <!-- Pagination Controls -->
     <div *ngIf="!loading && totalPages > 1" class="flex justify-center items-center space-x-2 mt-6">
       <button (click)="previousPage()" [disabled]="currentPage === 1"
-        class="px-3 py-1 border border-zinc-300 dark:border-zinc-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed dark:text-white dark:bg-zinc-700">
+        class="cursor-pointer px-3 py-1 border border-zinc-300 dark:border-zinc-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed dark:text-white dark:bg-zinc-700">
         Previous
       </button>
       <span class="text-zinc-700 dark:text-zinc-200 text-sm">
         Page {{ currentPage }} of {{ totalPages }}
       </span>
       <button (click)="nextPage()" [disabled]="currentPage === totalPages"
-        class="px-3 py-1 border border-zinc-300 dark:border-zinc-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed dark:text-white dark:bg-zinc-700">
+        class="cursor-pointer px-3 py-1 border border-zinc-300 dark:border-zinc-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed dark:text-white dark:bg-zinc-700">
         Next
       </button>
     </div>

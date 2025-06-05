@@ -21,7 +21,7 @@ export class AdminManageComponent implements OnInit {
   showDeleteModal = false;
   examToDelete: number | null = null;
   isDeleting = false;
-
+  isLoading = false;
   constructor(
     private examService: ExamService,
     private toastr: ToastrService,
@@ -29,11 +29,13 @@ export class AdminManageComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.isLoading = true;
     this.examService.getAllExamsForTeacher().subscribe((exams) => {
       this.exams = exams ?? [];
       this.filteredExams = exams ?? [];
       this.examCountService.updateAdminExamCount(this.exams.length);
       console.log('filtered', this.filteredExams);
+      this.isLoading = false;
     });
   }
 

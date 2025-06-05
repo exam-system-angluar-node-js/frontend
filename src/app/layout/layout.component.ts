@@ -39,7 +39,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   constructor(
     private focusModeService: FocusModeService,
     private cdr: ChangeDetectorRef,
-    private router:Router,
+    private router: Router,
     private authService: AuthService,
     private dataService: DataService,
     private examCountService: ExamCountService,
@@ -86,18 +86,20 @@ export class LayoutComponent implements OnInit, OnDestroy {
     this.studentExamCountSubscription?.unsubscribe();
   }
 
+
   private async loadStats(): Promise<void> {
-    try {
-      const stats = await this.dataService
-        .getStudentDashboardStats()
-        .toPromise();
-      this.stats = stats ?? this.stats;
-    } catch (error) {
-      console.error('Error loading stats:', error);
-      throw error;
+    if (this.currentUser?.role === 'student') {
+      try {
+        const stats = await this.dataService
+          .getStudentDashboardStats()
+          .toPromise();
+        this.stats = stats ?? this.stats;
+      } catch (error) {
+        console.error('Error loading stats:', error);
+        throw error;
+      }
     }
   }
-
   private initializeUserInfo(): void {
     this.currentUser = this.authService.currentUserValue;
     if (this.currentUser) {
@@ -144,7 +146,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
     }, 3000);
   }
 
-  logout():void {
+  logout(): void {
     this.authService.logout();
     this.showAlertMessage('Logged out successfully! Redirecting to login...', 'success');
     setTimeout(() => {
