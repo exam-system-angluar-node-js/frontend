@@ -38,6 +38,16 @@ export class CardComponent implements OnInit {
   @Input() instructorPublisher: boolean = false;
   @Input() userRole: string = 'teacher'; // Default to teacher, can be 'admin' or 'teacher'
   @Input() duration: number = 45; // Add this to CardComponent inputs
+  @Input() set isTaken(value: boolean) {
+    console.log('=== DEBUG: Card Component ===');
+    console.log('Exam ID:', this.id);
+    console.log('isTaken value:', value);
+    this._isTaken = value;
+  }
+  get isTaken(): boolean {
+    return this._isTaken;
+  }
+  private _isTaken: boolean = false;
 
   @Output() delete = new EventEmitter();
 
@@ -73,23 +83,26 @@ export class CardComponent implements OnInit {
   }
 
   sendExams() {
-    // Create current exam object from component inputs
-    const currentExam = {
-      id: this.id,
-      title: this.title,
-      description: this.description,
-      questionsCount: this.questionsCount,
-      category: this.category,
-      creationDateInput: this.convertToDate(this.creationDateInput),
-      instructorName: this.instructorName,
-      // Add duration if available from parent component
-      duration: this.duration || 45, // Default to 45 minutes if not provided
-    };
+    // Only allow navigation if the exam hasn't been taken
+    if (!this.isTaken) {
+      // Create current exam object from component inputs
+      const currentExam = {
+        id: this.id,
+        title: this.title,
+        description: this.description,
+        questionsCount: this.questionsCount,
+        category: this.category,
+        creationDateInput: this.convertToDate(this.creationDateInput),
+        instructorName: this.instructorName,
+        // Add duration if available from parent component
+        duration: this.duration || 45, // Default to 45 minutes if not provided
+      };
 
-    console.log('Sending exam data to service:', currentExam);
+      console.log('Sending exam data to service:', currentExam);
 
-    // Send the current exam data to the service
-    this.dataService.changeData([currentExam]);
+      // Send the current exam data to the service
+      this.dataService.changeData([currentExam]);
+    }
   }
 
   // Helper method to convert string | Date to Date

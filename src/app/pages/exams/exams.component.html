@@ -215,6 +215,7 @@
               [duration]="exam.duration ?? 0"
               [manage]="false"
               [instructorPublisher]="true"
+              [isTaken]="isExamTaken(exam.title)"
             >
             </app-card>
           }

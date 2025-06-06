@@ -1,0 +1,174 @@
+<div class="min-h-screen bg-gray-50 dark:bg-zinc-900">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Student Management</h1>
+      <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+        View and manage student information, track performance, and monitor progress.
+      </p>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="mb-6">
+      <div class="relative">
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="filterStudents()"
+          placeholder="Search students by name or email..."
+          class="w-full px-4 py-2 pl-10 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
+        />
+        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+          <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    @if (loading) {
+      <div class="flex justify-center items-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (error) {
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+        <span class="block sm:inline">{{ error }}</span>
+      </div>
+    }
+
+    <!-- Students List -->
+    @if (!loading && !error) {
+      <div class="bg-white dark:bg-zinc-800 shadow-lg rounded-xl overflow-hidden border border-gray-100 dark:border-zinc-700">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
+            <thead class="bg-gray-50 dark:bg-zinc-900">
+              <tr>
+                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Student
+                </th>
+                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Total Exams
+                </th>
+                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Pass Rate
+                </th>
+                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Average Score
+                </th>
+                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Status
+                </th>
+                <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-zinc-800 divide-y divide-gray-200 dark:divide-zinc-700">
+              @for (student of filteredStudents; track student.id) {
+                <tr class="hover:bg-gray-50 dark:hover:bg-zinc-700/50 transition-colors duration-200">
+                  <td class="px-6 py-5 whitespace-nowrap">
+                    <div class="flex items-center space-x-4">
+                      <div class="flex-shrink-0">
+                        <div class="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 flex items-center justify-center shadow-sm">
+                          <span class="text-white font-semibold text-lg">
+                            {{ student.name.charAt(0).toUpperCase() }}
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">
+                          {{ student.name }}
+                        </div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                          {{ student.email }}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-5 whitespace-nowrap">
+                    <div class="text-sm text-gray-900 dark:text-white font-medium">
+                      {{ student.examResults.totalExams }}
+                    </div>
+                  </td>
+                  <td class="px-6 py-5 whitespace-nowrap">
+                    <div class="text-sm text-gray-900 dark:text-white font-medium">
+                      {{ getPassRate(student) | number:'1.0-1' }}%
+                    </div>
+                  </td>
+                  <td class="px-6 py-5 whitespace-nowrap">
+                    <div class="text-sm text-gray-900 dark:text-white font-medium">
+                      {{ student.examResults.averageScore | number:'1.0-1' }}%
+                    </div>
+                  </td>
+                  <td class="px-6 py-5 whitespace-nowrap">
+                    <span [class]="getStatusColor(student.examResults.averageScore) + ' px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-opacity-10' + 
+                      (student.examResults.averageScore >= 70 ? ' bg-green-100 dark:bg-green-900/30' : 
+                       student.examResults.averageScore >= 50 ? ' bg-yellow-100 dark:bg-yellow-900/30' : 
+                       ' bg-red-100 dark:bg-red-900/30')">
+                      {{ student.examResults.averageScore >= 70 ? 'Excellent' : 
+                         student.examResults.averageScore >= 50 ? 'Good' : 'Needs Improvement' }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-5 whitespace-nowrap text-right text-sm font-medium">
+                    <button
+                      (click)="confirmDelete(student)"
+                      class="inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors duration-200 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Delete Confirmation Modal -->
+      @if (showDeleteConfirm && studentToDelete) {
+        <div class="fixed inset-0 flex items-center justify-center">
+          <div class="bg-white dark:bg-purple-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-zinc-950 mb-4">Confirm Delete</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Are you sure you want to delete {{ studentToDelete.name }}? This action cannot be undone and will delete all associated exam results and data.
+            </p>
+            <div class="flex justify-end space-x-3">
+              <button
+                (click)="cancelDelete()"
+                class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-zinc-700 rounded-md hover:bg-gray-200 dark:hover:bg-zinc-600"
+              >
+                Cancel
+              </button>
+              <button
+                (click)="deleteStudent()"
+                class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Empty State -->
+      @if (filteredStudents.length === 0) {
+        <div class="text-center py-12">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No students found</h3>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Try adjusting your search or filter to find what you're looking for.
+          </p>
+        </div>
+      }
+    }
+  </div>
+</div> 

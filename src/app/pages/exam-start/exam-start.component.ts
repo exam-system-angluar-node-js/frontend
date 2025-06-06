@@ -58,7 +58,7 @@ export class ExamStartComponent implements OnInit, OnDestroy {
     private focusModeService: FocusModeService,
     private authService: AuthService,
     private cheatingDetectorService: CheatingDetectorService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.userRole = this.authService.getUserRole();
@@ -333,7 +333,9 @@ export class ExamStartComponent implements OnInit, OnDestroy {
     if (studentId && examId) {
       this.cheatingDetectorService.startDetection(studentId, examId);
     } else {
-      console.error('Could not start cheating detection: Missing student ID or exam ID.');
+      console.error(
+        'Could not start cheating detection: Missing student ID or exam ID.'
+      );
     }
   }
 
