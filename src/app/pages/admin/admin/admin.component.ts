@@ -46,6 +46,8 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   // UI state
   loading = true;
   error: string | null = null;
+  noResultsData = false;
+  noActivityData = false;
 
   // Chart instances
   private resultsChart: Chart | null = null;
@@ -172,64 +174,86 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    // Check if there are any students who have taken exams
+    const hasStudentActivity = this.dashboardStats.totalStudents > 0 && this.recentResults.length > 0;
+
     // Prepare data for charts
     const examTitles = this.examResults.map(exam => exam.exam.title);
     const totalAttempts = this.examResults.map(exam => exam.totalAttempts);
     const overallPassRate = this.dashboardStats?.overallPassRate || 0;
     const overallFailRate = 100 - overallPassRate;
 
-    // Create Overall Pass Rate Chart (Pie Chart)
-    this.resultsChart = new Chart(resultsCanvas, {
-      type: 'pie',
-      data: {
-        labels: ['Passed', 'Failed'],
-        datasets: [
-          {
-            data: [overallPassRate, overallFailRate],
-            backgroundColor: ['#4CAF50', '#F44336'], // Green and Red
-            borderColor: ['#ffffff', '#ffffff'],
-            borderWidth: 2,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom' },
-          title: { display: true, text: 'Overall Pass Rate' }
-        },
-      },
-    });
+    // Set no data state for both charts if no student activity
+    if (!hasStudentActivity) {
+      this.noResultsData = true;
+      this.noActivityData = true;
+      return;
+    }
 
-    // Create Exam Attempts Chart (Bar Chart)
-    this.activityChart = new Chart(activityCanvas, {
-      type: 'bar',
-      data: {
-        labels: examTitles,
-        datasets: [
-          {
-            label: 'Total Attempts',
-            data: totalAttempts,
-            backgroundColor: '#3F51B5', // Indigo
-            borderColor: '#3F51B5',
-            borderWidth: 1,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: { beginAtZero: true, title: { display: true, text: 'Number of Attempts' } },
-          x: { title: { display: true, text: 'Exam Title' } }
+    // Check if there's data for results chart
+    if (overallPassRate === 0 && overallFailRate === 0) {
+      this.noResultsData = true;
+    } else {
+      this.noResultsData = false;
+      // Create Overall Pass Rate Chart (Pie Chart)
+      this.resultsChart = new Chart(resultsCanvas, {
+        type: 'pie',
+        data: {
+          labels: ['Passed', 'Failed'],
+          datasets: [
+            {
+              data: [overallPassRate, overallFailRate],
+              backgroundColor: ['#4CAF50', '#F44336'], // Green and Red
+              borderColor: ['#ffffff', '#ffffff'],
+              borderWidth: 2,
+            },
+          ],
         },
-        plugins: {
-          legend: { display: false },
-          title: { display: true, text: 'Exam Attempts' }
-        }
-      },
-    });
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' },
+            title: { display: true, text: 'Overall Pass Rate' }
+          },
+        },
+      });
+    }
+
+    // Check if there's data for activity chart
+    if (examTitles.length === 0 || totalAttempts.every(attempt => attempt === 0)) {
+      this.noActivityData = true;
+    } else {
+      this.noActivityData = false;
+      // Create Exam Attempts Chart (Bar Chart)
+      this.activityChart = new Chart(activityCanvas, {
+        type: 'bar',
+        data: {
+          labels: examTitles,
+          datasets: [
+            {
+              label: 'Total Attempts',
+              data: totalAttempts,
+              backgroundColor: '#3F51B5', // Indigo
+              borderColor: '#3F51B5',
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true, title: { display: true, text: 'Number of Attempts' } },
+            x: { title: { display: true, text: 'Exam Title' } }
+          },
+          plugins: {
+            legend: { display: false },
+            title: { display: true, text: 'Exam Attempts' }
+          }
+        },
+      });
+    }
   }
 
   get totalQuestions(): number {

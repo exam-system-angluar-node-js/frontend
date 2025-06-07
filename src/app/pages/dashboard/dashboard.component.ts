@@ -32,6 +32,8 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   currentUser: any = null;
   studentName: string = 'Student';
   averageScore: number = 0;
+  noPerformanceData = false;
+  noCategoryData = false;
   stats: StudentDashboardStats = {
     totalExams: 0,
     completedExams: 0,
@@ -214,6 +216,13 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
       const data = distribution ?? [0, 0, 0, 0, 0];
       const total = data.reduce((a, b) => a + b, 0);
 
+      // If there's no data, set the flag and return
+      if (total === 0) {
+        this.noPerformanceData = true;
+        return;
+      }
+
+      this.noPerformanceData = false;
       // Ensure the canvas is ready
       await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -300,6 +309,14 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 
       const labels = Object.keys(categoryScores ?? {});
       const data = Object.values(categoryScores ?? {});
+
+      // If there's no data, set the flag and return
+      if (labels.length === 0 || data.length === 0) {
+        this.noCategoryData = true;
+        return;
+      }
+
+      this.noCategoryData = false;
       const colors = this.generateColors(labels.length);
 
       // Ensure the canvas is ready
