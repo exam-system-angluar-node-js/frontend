@@ -1,5 +1,5 @@
 // admin.component.ts - Merged version with service integration and improved functionality
-import { Component, AfterViewInit, OnInit, OnDestroy } from '@angular/core';
+import { Component, AfterViewInit, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -13,6 +13,7 @@ import { AuthService } from '../../../services/auth.service';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { ExamService } from '../../../services/exam.service';
 import { ExamCountService } from '../../../services/exam-count.service';
+import { Router } from '@angular/router';
 
 Chart.register(...registerables);
 
@@ -45,6 +46,8 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   // UI state
   loading = true;
   error: string | null = null;
+  noResultsData = false;
+  noActivityData = false;
 
   // Chart instances
   private resultsChart: Chart | null = null;
@@ -55,7 +58,9 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     private adminService: AdminService,
     private authService: AuthService,
     private examService: ExamService,
-    private examCountService: ExamCountService
+    private examCountService: ExamCountService,
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {
     // Initialize user information
     this.initializeUserInfo();
@@ -67,8 +72,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Wait for data to be loaded before initializing charts
-    this.waitForDataAndInitCharts();
+    // Do nothing here; charts will be initialized after data and view are ready
   }
 
   ngOnDestroy(): void {
@@ -91,19 +95,6 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     this.examService.getAllExamsForTeacher().subscribe(exams => {
       this.examCountService.updateAdminExamCount(exams?.length ?? 0);
     });
-  }
-
-  private waitForDataAndInitCharts(): void {
-    const checkDataAndInit = () => {
-      if (this.dataLoaded && !this.loading) {
-        setTimeout(() => {
-          this.initializeCharts();
-        }, 100);
-      } else {
-        setTimeout(checkDataAndInit, 100);
-      }
-    };
-    checkDataAndInit();
   }
 
   private destroyCharts(): void {
@@ -147,19 +138,17 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
-          console.log('Dashboard data loaded:', data);
-
-          this.dashboardStats = data.stats.data;
+          const result = data.stats.data;
+          const stats = (result as any).data ? (result as any).data : result;
+          this.dashboardStats = stats ?? this.dashboardStats;
           this.examResults = data.examResults;
           this.recentResults = data.recentResults.data;
           this.loading = false;
           this.dataLoaded = true;
-
-          console.log('Data loaded - dashboardStats:', this.dashboardStats);
-          console.log('Data loaded - examResults:', this.examResults);
+          this.cdr.detectChanges();
+          this.initializeCharts();
         },
         error: (error) => {
-          console.error('Error loading dashboard data:', error);
           this.error = 'Failed to load dashboard data';
           this.loading = false;
           this.dataLoaded = false;
@@ -168,15 +157,12 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initializeCharts(): void {
-    console.log('Initializing charts...');
+    // Destroy previous chart instances
+    this.destroyCharts();
 
     // Check if canvas elements exist
-    const resultsCanvas = document.getElementById(
-      'resultsChart'
-    ) as HTMLCanvasElement;
-    const activityCanvas = document.getElementById(
-      'activityChart'
-    ) as HTMLCanvasElement;
+    const resultsCanvas = document.getElementById('resultsChart') as HTMLCanvasElement;
+    const activityCanvas = document.getElementById('activityChart') as HTMLCanvasElement;
 
     if (!resultsCanvas || !activityCanvas) {
       console.warn('Chart canvas not found.');
@@ -185,9 +171,11 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Ensure data is loaded before initializing charts
     if (!this.dataLoaded || this.loading) {
-      console.log('Data not yet loaded for charts.');
       return;
     }
+
+    // Check if there are any students who have taken exams
+    const hasStudentActivity = this.dashboardStats.totalStudents > 0 && this.recentResults.length > 0;
 
     // Prepare data for charts
     const examTitles = this.examResults.map(exam => exam.exam.title);
@@ -195,58 +183,77 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     const overallPassRate = this.dashboardStats?.overallPassRate || 0;
     const overallFailRate = 100 - overallPassRate;
 
-    // Create Overall Pass Rate Chart (Pie Chart)
-    this.resultsChart = new Chart(resultsCanvas, {
-      type: 'pie',
-      data: {
-        labels: ['Passed', 'Failed'],
-        datasets: [
-          {
-            data: [overallPassRate, overallFailRate],
-            backgroundColor: ['#4CAF50', '#F44336'], // Green and Red
-            borderColor: ['#ffffff', '#ffffff'],
-            borderWidth: 2,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom' },
-          title: { display: true, text: 'Overall Pass Rate' }
-        },
-      },
-    });
+    // Set no data state for both charts if no student activity
+    if (!hasStudentActivity) {
+      this.noResultsData = true;
+      this.noActivityData = true;
+      return;
+    }
 
-    // Create Exam Attempts Chart (Bar Chart)
-    this.activityChart = new Chart(activityCanvas, {
-      type: 'bar',
-      data: {
-        labels: examTitles,
-        datasets: [
-          {
-            label: 'Total Attempts',
-            data: totalAttempts,
-            backgroundColor: '#3F51B5', // Indigo
-            borderColor: '#3F51B5',
-            borderWidth: 1,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: { beginAtZero: true, title: { display: true, text: 'Number of Attempts' } },
-          x: { title: { display: true, text: 'Exam Title' } }
+    // Check if there's data for results chart
+    if (overallPassRate === 0 && overallFailRate === 0) {
+      this.noResultsData = true;
+    } else {
+      this.noResultsData = false;
+      // Create Overall Pass Rate Chart (Pie Chart)
+      this.resultsChart = new Chart(resultsCanvas, {
+        type: 'pie',
+        data: {
+          labels: ['Passed', 'Failed'],
+          datasets: [
+            {
+              data: [overallPassRate, overallFailRate],
+              backgroundColor: ['#4CAF50', '#F44336'], // Green and Red
+              borderColor: ['#ffffff', '#ffffff'],
+              borderWidth: 2,
+            },
+          ],
         },
-        plugins: {
-          legend: { display: false },
-          title: { display: true, text: 'Exam Attempts' }
-        }
-      },
-    });
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' },
+            title: { display: true, text: 'Overall Pass Rate' }
+          },
+        },
+      });
+    }
+
+    // Check if there's data for activity chart
+    if (examTitles.length === 0 || totalAttempts.every(attempt => attempt === 0)) {
+      this.noActivityData = true;
+    } else {
+      this.noActivityData = false;
+      // Create Exam Attempts Chart (Bar Chart)
+      this.activityChart = new Chart(activityCanvas, {
+        type: 'bar',
+        data: {
+          labels: examTitles,
+          datasets: [
+            {
+              label: 'Total Attempts',
+              data: totalAttempts,
+              backgroundColor: '#3F51B5', // Indigo
+              borderColor: '#3F51B5',
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true, title: { display: true, text: 'Number of Attempts' } },
+            x: { title: { display: true, text: 'Exam Title' } }
+          },
+          plugins: {
+            legend: { display: false },
+            title: { display: true, text: 'Exam Attempts' }
+          }
+        },
+      });
+    }
   }
 
   get totalQuestions(): number {
@@ -270,7 +277,6 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   refreshData(): void {
-    console.log('Refreshing dashboard data...');
     this.loadDashboardData();
     this.loadExamsForCount();
   }

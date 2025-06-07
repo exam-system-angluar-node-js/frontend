@@ -7,13 +7,14 @@ import { ExamService } from '../../../services/exam.service';
 import { ToastrService } from 'ngx-toastr';
 import { forkJoin } from 'rxjs';
 import { Observable } from 'rxjs';
+import { ConfirmModalComponent } from '../../../shared/components/confirm-modal/confirm-modal.component';
 
 @Component({
   selector: 'app-edit-exam',
   templateUrl: './edit-exam.component.html',
   styleUrls: ['./edit-exam.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmModalComponent],
 })
 export class EditExamComponent implements OnInit {
   examId: string = '';
@@ -37,6 +38,11 @@ export class EditExamComponent implements OnInit {
   questions: Question[] = [];
   originalQuestions: Question[] = []; // To track changes
   deletedQuestionIds: number[] = []; // To track deleted questions
+
+  // Add new properties for delete modal
+  showDeleteModal = false;
+  isDeleting = false;
+  questionToDelete: number | undefined;
 
   constructor(
     private route: ActivatedRoute,
@@ -126,7 +132,7 @@ export class EditExamComponent implements OnInit {
           ...questionData,
           id: this.editingQuestion.id, // Preserve the ID
         };
-        this.toastr.success('Question updated in list', 'Success');
+        this.toastr.success('Question has been updated', 'Successfully Updated');
       }
       this.editingQuestion = null;
     } else {
@@ -136,7 +142,7 @@ export class EditExamComponent implements OnInit {
         id: Date.now(), // Use timestamp as temporary ID
       };
       this.questions.push(newQuestion);
-      this.toastr.success('Question added to list', 'Success');
+      this.toastr.success('Question has been added', 'Successfully Added');
     }
 
     // Reset form and hide it
@@ -155,16 +161,32 @@ export class EditExamComponent implements OnInit {
 
   deleteQuestion(questionId: number | undefined): void {
     if (questionId === undefined) return;
+    this.questionToDelete = questionId;
+    this.showDeleteModal = true;
+  }
 
-    if (confirm('Are you sure you want to delete this question?')) {
-      // If the question has a real ID, add it to the deletedQuestionIds array
-      if (questionId < 1000000) { // Assuming temporary IDs are large timestamps
-        this.deletedQuestionIds.push(questionId);
-      }
-      // Remove the question from the local array
-      this.questions = this.questions.filter((q) => q.id !== questionId);
-      this.toastr.success('Question marked for deletion', 'Success');
+  onDeleteConfirm(): void {
+    if (this.questionToDelete === undefined) return;
+    
+    this.isDeleting = true;
+    
+    // If the question has a real ID, add it to the deletedQuestionIds array
+    if (this.questionToDelete < 1000000) { // Assuming temporary IDs are large timestamps
+      this.deletedQuestionIds.push(this.questionToDelete);
     }
+    
+    // Remove the question from the local array
+    this.questions = this.questions.filter((q) => q.id !== this.questionToDelete);
+    this.toastr.success('Question marked for deletion', 'Successfully Deleted');
+    
+    this.isDeleting = false;
+    this.showDeleteModal = false;
+    this.questionToDelete = undefined;
+  }
+
+  onDeleteCancel(): void {
+    this.showDeleteModal = false;
+    this.questionToDelete = undefined;
   }
 
   saveExam(): void {

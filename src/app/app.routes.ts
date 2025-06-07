@@ -65,9 +65,9 @@ export const routes: Routes = [
       { path: 'allresults', component: AdminResultsComponent },
       { path: 'manage/addexam', component: AddExamComponent },
       { path: 'manage/editexam/:id', component: EditExamComponent },
-      { path: 'cheating-reports', component: CheatingReportsComponent },
       { path: 'contact', component: ContactComponent },
       { path: 'students', component: StudentManagementComponent },
+      { path: 'cheating-logs', component: CheatingReportsComponent },
     ],
   },
 ];

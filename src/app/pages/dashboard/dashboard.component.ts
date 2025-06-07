@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Chart, registerables } from 'chart.js';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Chart, registerables, ChartConfiguration, ChartTypeRegistry, DoughnutControllerChartOptions } from 'chart.js';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import {
@@ -22,13 +22,18 @@ Chart.register(...registerables);
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
-export class DashboardComponent implements OnInit, OnDestroy {
+export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChild('performanceChart') performanceChartCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('categoryChart') categoryChartCanvas!: ElementRef<HTMLCanvasElement>;
+
   isLoading = true;
   hasError = false;
   errorMessage = '';
   currentUser: any = null;
   studentName: string = 'Student';
   averageScore: number = 0;
+  noPerformanceData = false;
+  noCategoryData = false;
   stats: StudentDashboardStats = {
     totalExams: 0,
     completedExams: 0,
@@ -47,7 +52,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private dataService: DataService,
     private authService: AuthService,
     private examService: ExamService,
-    private examCountService: ExamCountService
+    private examCountService: ExamCountService,
+    private cdr: ChangeDetectorRef
   ) {
     this.initializeUserInfo();
   }
@@ -55,6 +61,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadDashboardData();
     this.loadExamsForCount();
+  }
+
+  ngAfterViewInit() {
+    // Initialize charts after view is ready
+    this.initializeCharts();
   }
 
   private initializeUserInfo(): void {
@@ -80,13 +91,30 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   // Add missing methods that the template calls
   refreshData() {
-    this.loadDashboardData();
-    this.loadExamsForCount();
+    this.isLoading = true;
+    this.hasError = false;
+
+    this.destroyCharts().then(() => {
+      Promise.all([
+        this.loadStats(),
+        this.loadRecentResults(),
+      ])
+        .then(() => {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+          this.initializeCharts();
+        })
+        .catch((error) => {
+          console.error('Error refreshing dashboard data:', error);
+          this.hasError = true;
+          this.errorMessage = 'Failed to refresh dashboard data. Please try again.';
+          this.isLoading = false;
+        });
+    });
   }
 
   retryLoadData() {
-    this.loadDashboardData();
-    this.loadExamsForCount();
+    this.refreshData();
   }
 
   calculateAccuracy(): number {
@@ -107,10 +135,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
     Promise.all([
       this.loadStats(),
       this.loadRecentResults(),
-      this.loadChartData(),
     ])
       .then(() => {
         this.isLoading = false;
+        this.cdr.detectChanges();
+        this.initializeCharts();
       })
       .catch((error) => {
         console.error('Error loading dashboard data:', error);
@@ -144,42 +173,60 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async loadChartData(): Promise<void> {
+  private async destroyCharts() {
     try {
-      setTimeout(() => {
-        this.initializeCharts();
-      }, 100);
+      if (this.performanceChart) {
+        this.performanceChart.destroy();
+        this.performanceChart = null;
+      }
+      if (this.categoryChart) {
+        this.categoryChart.destroy();
+        this.categoryChart = null;
+      }
     } catch (error) {
-      console.error('Error loading chart data:', error);
-      throw error;
+      console.error('Error destroying charts:', error);
     }
   }
 
   private async initializeCharts() {
     try {
-      await Promise.all([
-        this.initializeScoreDistributionChart(),
-        this.initializeCategoryChart(),
-      ]);
+      if (!this.performanceChartCanvas?.nativeElement || !this.categoryChartCanvas?.nativeElement) {
+        return;
+      }
+      await this.initializeScoreDistributionChart();
+      await this.initializeCategoryChart();
     } catch (error) {
       console.error('Error initializing charts:', error);
     }
   }
 
   private async initializeScoreDistributionChart() {
-    const ctx = document.getElementById(
-      'performanceChart'
-    ) as HTMLCanvasElement;
-    if (!ctx) return;
+    if (!this.performanceChartCanvas?.nativeElement) return;
 
     try {
+      // Always destroy the previous chart instance if it exists
+      if (this.performanceChart) {
+        this.performanceChart.destroy();
+        this.performanceChart = null;
+      }
+
       const distribution = await this.dataService
         .getStudentScoreDistribution()
         .toPromise();
       const data = distribution ?? [0, 0, 0, 0, 0];
       const total = data.reduce((a, b) => a + b, 0);
 
-      this.performanceChart = new Chart(ctx, {
+      // If there's no data, set the flag and return
+      if (total === 0) {
+        this.noPerformanceData = true;
+        return;
+      }
+
+      this.noPerformanceData = false;
+      // Ensure the canvas is ready
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const config: ChartConfiguration<'doughnut'> = {
         type: 'doughnut',
         data: {
           labels: ['0-20%', '21-40%', '41-60%', '61-80%', '81-100%'],
@@ -229,38 +276,53 @@ export class DashboardComponent implements OnInit, OnDestroy {
               callbacks: {
                 label: (context) => {
                   const value = context.raw as number;
-                  const percentage =
-                    total > 0 ? Math.round((value / total) * 100) : 0;
+                  const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
                   return `${value} exams (${percentage}%)`;
                 },
               },
             },
           },
           animation: {
-            animateScale: true,
-            animateRotate: true,
+            duration: 1000,
           },
         },
-      });
+      };
+
+      this.performanceChart = new Chart(this.performanceChartCanvas.nativeElement, config);
     } catch (error) {
       console.error('Error creating score distribution chart:', error);
     }
   }
 
   private async initializeCategoryChart() {
-    const ctx = document.getElementById('categoryChart') as HTMLCanvasElement;
-    if (!ctx) return;
+    if (!this.categoryChartCanvas?.nativeElement) return;
 
     try {
+      // Always destroy the previous chart instance if it exists
+      if (this.categoryChart) {
+        this.categoryChart.destroy();
+        this.categoryChart = null;
+      }
+
       const categoryScores: CategoryPerformance | undefined =
         await this.dataService.getStudentCategoryPerformance().toPromise();
 
       const labels = Object.keys(categoryScores ?? {});
       const data = Object.values(categoryScores ?? {});
 
+      // If there's no data, set the flag and return
+      if (labels.length === 0 || data.length === 0) {
+        this.noCategoryData = true;
+        return;
+      }
+
+      this.noCategoryData = false;
       const colors = this.generateColors(labels.length);
 
-      this.categoryChart = new Chart(ctx, {
+      // Ensure the canvas is ready
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const config: ChartConfiguration<'bar'> = {
         type: 'bar',
         data: {
           labels,
@@ -301,8 +363,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
               },
             },
           },
+          animation: {
+            duration: 1000,
+          },
         },
-      });
+      };
+
+      this.categoryChart = new Chart(this.categoryChartCanvas.nativeElement, config);
     } catch (error) {
       console.error('Error creating category chart:', error);
     }

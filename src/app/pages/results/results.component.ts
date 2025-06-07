@@ -22,6 +22,9 @@ interface ResultCardData {
 })
 export class ResultsComponent implements OnInit {
   results: ResultCardData[] = [];
+  searchResult: string = '';
+  title: string = 'all';
+  filteredResults: ResultCardData[] = [];
   loading = true;
   error: string | null = null;
 
@@ -29,7 +32,7 @@ export class ResultsComponent implements OnInit {
     private dataService: DataService,
     private examService: ExamService,
     private examCountService: ExamCountService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadResults();
@@ -103,8 +106,29 @@ export class ResultsComponent implements OnInit {
     this.loadExamsForCount();
   }
 
-  // Assuming you have an applyFilters method in this component
+  refreshResults(): void {
+    this.onRetry();
+  }
+
+  handleSearch(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    this.searchResult = inputElement.value.toLowerCase();
+    this.applyFilters();
+  }
+
+  handleCategoryChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    this.title = selectElement.value.toLowerCase();
+    this.applyFilters();
+  }
+
   applyFilters(): void {
-    // Add your filtering logic here if needed
+    this.filteredResults = this.results.filter((result) => {
+      const matchesSearch = result.title.toLowerCase().includes(this.searchResult);
+      const matchesCategory =
+        this.title === 'all' ||
+        result.title.toLowerCase() === this.title;
+      return matchesSearch && matchesCategory;
+    });
   }
 }

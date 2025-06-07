@@ -145,4 +145,8 @@ export class ExamsComponent implements OnInit, OnDestroy {
   isExamTaken(examTitle: string): boolean {
     return this.takenExamTitles.has(examTitle);
   }
+
+    refreshResults(): void {
+     this.retryLoading();
+  }
 }

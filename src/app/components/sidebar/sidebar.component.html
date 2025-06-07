@@ -1,6 +1,42 @@
 <aside id="logo-sidebar" [class.-translate-x-full]="!isOpen"
   class="fixed top-0 left-0 z-40 w-64 h-screen pt-20 transition-transform bg-white border-r border-gray-200 xlg:translate-x-0 dark:bg-zinc-900 dark:border-gray-700"
   aria-label="Sidebar">
+  <!-- Alert Container -->
+  <div *ngIf="showLogoutAlert"
+    class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300">
+    <div
+      class="bg-white dark:bg-zinc-800 rounded-2xl p-6 shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
+      <!-- Alert Header -->
+      <div class="flex items-center gap-4 mb-4">
+        <div class="bg-red-100 dark:bg-red-900/20 p-3 rounded-full">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="h-6 w-6 text-red-600 dark:text-red-400">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" x2="9" y1="12" y2="12"></line>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Confirm Logout</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Are you sure you want to log out?</p>
+        </div>
+      </div>
+
+      <!-- Alert Actions -->
+      <div class="flex gap-3 justify-end">
+        <button (click)="cancelLogout()"
+          class="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-600 rounded-lg transition-colors duration-200">
+          Cancel
+        </button>
+        <button (click)="confirmLogout()"
+          class="cursor-pointer px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 rounded-lg transition-colors duration-200">
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div class="h-full flex flex-col justify-between px-3 pb-4 overflow-y-auto bg-white dark:bg-zinc-900">
     <ul class="space-y-2 font-medium">
       <li>
@@ -63,13 +99,13 @@
       }
       @if (queryPath==="teacher") {
       <li>
-        <a (click)="closeSidebar.emit()"
-          [routerLink]="['/teacher', 'cheating-reports']"
+        <a (click)="closeSidebar.emit()" [routerLink]="['/teacher', 'cheating-logs']"
           class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 group">
           <svg class="h-5 w-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618 0a9.955 9.955 0 01-1.942 2.915C15.961 17.845 13.005 20 10 20a9.96 9.96 0 01-8-4C1.613 14.723 1 13.226 1 11.5 1 7.5 4.75 4 9.5 4c1.131 0 2.212.252 3.2.728M7 7l1.582-1.582m4.356 4.356L16.5 15M9 11.5h.01M12.5 14.5h.01"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12l2 2 4-4m5.618 0a9.955 9.955 0 01-1.942 2.915C15.961 17.845 13.005 20 10 20a9.96 9.96 0 01-8-4C1.613 14.723 1 13.226 1 11.5 1 7.5 4.75 4 9.5 4c1.131 0 2.212.252 3.2.728M7 7l1.582-1.582m4.356 4.356L16.5 15M9 11.5h.01M12.5 14.5h.01" />
           </svg>
-          <span class="flex-1 ms-3 whitespace-nowrap">Cheating Reports</span>
+          <span class="flex-1 ms-3 whitespace-nowrap">Cheating Logs</span>
         </a>
       </li>
       <li>
@@ -102,8 +138,7 @@
           [routerLink]="queryPath === 'student'? ['/student', 'settings']: ['/teacher', 'settings']"
           class="text-sm bg-zinc-900 rounded-full">
           <span class="sr-only">Open user menu</span>
-          <img class="w-10 h-10 rounded-full" src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
-            alt="user photo" />
+          <img class="w-10 h-10 rounded-full" [src]="getAvatarUrl()" alt="user photo" />
         </a>
         <div class="ml-2 mb-2 text-stone-50">
           <div class="text-sm">{{userDetails.name}}</div>
@@ -112,10 +147,11 @@
         </div>
       </div>
       <div>
-        <a (click)="handleLogout()" class="cursor-pointer">
+        <a (click)="handleLogout()"
+          class="flex items-center justify-center w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 transition-colors duration-200 cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-            class="h-4 w-4 text-gray-50 mb-5">
+            class="h-4 w-4 text-red-600 dark:text-red-400">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
             <polyline points="16 17 21 12 16 7"></polyline>
             <line x1="21" x2="9" y1="12" y2="12"></line>
