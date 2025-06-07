@@ -8,6 +8,7 @@ import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-settings',
+  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css'
@@ -20,12 +21,12 @@ export class SettingsComponent {
 
   isDeleting = false;
   isUploading = false;
+  showDeleteConfirmation = false;
   profileData = {
     avatar: 'https://flowbite.com/docs/images/people/profile-picture-5.jpg'
   };
 
   avatarPreview: SafeUrl | null = null;
-  showDeleteConfirmation = false;
   currentUser: any = null;
   userDetails: any = null;
   selectedFile: File | null = null;
@@ -112,25 +113,51 @@ export class SettingsComponent {
 
   // Delete Account Validation
   canDelete(): boolean {
-    return this.deleteData.email === this.userDetails.email &&
+    return this.deleteData.email === this.userDetails?.email &&
       this.deleteData.confirmation.toUpperCase() === 'DELETE';
   }
 
   // Delete Account Handler
   deleteAccount(): void {
-    if (!this.canDelete()) return;
+    if (!this.canDelete()) {
+      this.toastr.error('Please fill in all fields correctly', 'Validation Error');
+      return;
+    }
+    this.showDeleteConfirmation = true;
+  }
 
+  confirmDelete(): void {
+    this.showDeleteConfirmation = false;
+    this.proceedWithDeletion();
+  }
+
+  cancelDelete(): void {
+    this.showDeleteConfirmation = false;
+    this.resetDeleteForm();
+  }
+
+  private proceedWithDeletion(): void {
     this.isDeleting = true;
     this.authService.deleteAccount().subscribe({
       next: () => {
-        const toastRef = this.toastr.success('Your account has been permanently deleted');
+        const toastRef = this.toastr.success('Your account has been permanently deleted. Redirecting to login...', 'Success', {
+          timeOut: 1500,
+          positionClass: 'toast-top-right',
+          progressBar: true,
+          closeButton: true
+        });
         toastRef.onHidden.subscribe(() => {
           window.location.href = '/login';
         });
       },
       error: (error) => {
         this.isDeleting = false;
-        this.toastr.error('Failed to delete account. Please try again.');
+        this.toastr.error('Failed to delete account. Please try again.', 'Error', {
+          timeOut: 3000,
+          positionClass: 'toast-top-right',
+          progressBar: true,
+          closeButton: true
+        });
         console.error('Error deleting account:', error);
       }
     });

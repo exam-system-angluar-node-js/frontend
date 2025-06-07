@@ -9,6 +9,7 @@ import { DataService, ExamData, StudentDashboardStats } from '../services/data.s
 import { ExamCountService } from '../services/exam-count.service';
 import { Subscription } from 'rxjs';
 import { ExamService } from '../services/exam.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-layout',
@@ -43,7 +44,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private dataService: DataService,
     private examCountService: ExamCountService,
-    private examService: ExamService
+    private examService: ExamService,
+    private toastr: ToastrService
   ) {
     this.initializeUserInfo();
   }
@@ -148,7 +150,12 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.authService.logout();
-    this.showAlertMessage('Logged out successfully! Redirecting to login...', 'success');
+    this.toastr.success('Logged out successfully! Redirecting to login...', 'Success', {
+      timeOut: 1500,
+      positionClass: 'toast-top-right',
+      progressBar: true,
+      closeButton: true
+    });
     setTimeout(() => {
       this.router.navigate(['/login']);
     }, 1500);

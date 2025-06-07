@@ -7,18 +7,14 @@
 </div>
 }
 
-<app-navbar *ngIf="!focusMode" [isSidebarOpen]="togglerState" [userDetails]="user"
-  (toggleState)="onToggleState($event)"  [logout]="logout.bind(this)"/>
-<app-sidebar *ngIf="!focusMode" [isOpen]="togglerState" [userDetails]="user" [examLength]="stats.totalExams"
-  (closeSidebar)="togglerState = false"  [logoutFunction]="logout.bind(this)" />
-
-<main class="min-h-screen dark:bg-zinc-900">
-  <div class="container mx-auto px-4 py-20">
-    @if (togglerState) {
-    <div class="fixed inset-0 z-30 bg-black/70" (click)="togglerState = false"></div>
-    }
-    <div [class.ml-64]="togglerState">
+<div class="min-h-screen bg-gray-50 dark:bg-zinc-900">
+  <app-navbar [isSidebarOpen]="togglerState" (toggleState)="onToggleState($event)" [userDetails]="currentUser"
+    [logout]="logout.bind(this)"></app-navbar>
+  <app-sidebar [isOpen]="togglerState" [userDetails]="currentUser" [queryPath]="currentUser?.role"
+    [examLength]="stats.totalExams" [logout]="logout.bind(this)" (closeSidebar)="onToggleState(false)"></app-sidebar>
+  <div class="p-4" [class.ml-64]="togglerState">
+    <div class="p-4 mt-14">
       <router-outlet></router-outlet>
     </div>
   </div>
-</main>
+</div>

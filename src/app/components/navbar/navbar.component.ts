@@ -1,11 +1,11 @@
 import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink],
+  imports: [RouterLink, CommonModule],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css',
 })
@@ -19,6 +19,8 @@ export class NavbarComponent implements OnInit {
 
   @Input() isSidebarOpen = false;
   @Output() toggleState = new EventEmitter<boolean>();
+
+  showLogoutAlert = false;
 
   constructor(private route: ActivatedRoute, private authService: AuthService) {
     this.authService.isLoggedInObservable().subscribe(() => {
@@ -52,6 +54,18 @@ export class NavbarComponent implements OnInit {
   }
 
   handleLogout() {
+    this.showLogoutAlert = true;
+    this.isDropdownOpen = false;
+    this.dropdown.nativeElement.classList.add('hidden');
+    this.dropdown.nativeElement.classList.remove('block');
+  }
+
+  cancelLogout() {
+    this.showLogoutAlert = false;
+  }
+
+  confirmLogout() {
+    this.showLogoutAlert = false;
     this.logout();
   }
 
