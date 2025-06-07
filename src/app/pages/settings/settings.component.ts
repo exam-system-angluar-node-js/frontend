@@ -121,16 +121,19 @@ export class SettingsComponent {
     if (!this.canDelete()) return;
 
     this.isDeleting = true;
-    console.log('Initiating account deletion...');
-
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Account deleted successfully');
-      alert('Your account has been permanently deleted');
-      this.isDeleting = false;
-      this.resetDeleteForm();
-      // Here you would typically redirect to login/home page
-    }, 1500);
+    this.authService.deleteAccount().subscribe({
+      next: () => {
+        const toastRef = this.toastr.success('Your account has been permanently deleted');
+        toastRef.onHidden.subscribe(() => {
+          window.location.href = '/login';
+        });
+      },
+      error: (error) => {
+        this.isDeleting = false;
+        this.toastr.error('Failed to delete account. Please try again.');
+        console.error('Error deleting account:', error);
+      }
+    });
   }
 
   // Reset Delete Form

@@ -67,8 +67,7 @@
           [routerLink]="queryPath === 'student'? ['/student', 'settings']: ['/teacher', 'settings']"
           class="text-sm bg-zinc-900 rounded-full">
           <span class="sr-only">Open user menu</span>
-          <img class="w-10 h-10 rounded-full"  [src]="getAvatarUrl()"
-            alt="user photo" />
+          <img class="w-10 h-10 rounded-full" [src]="getAvatarUrl()" alt="user photo" />
         </a>
         <div class="ml-2 mb-2 text-stone-50">
           <div class="text-sm">{{userDetails.name}}</div>

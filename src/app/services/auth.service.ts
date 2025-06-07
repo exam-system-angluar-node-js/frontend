@@ -95,4 +95,17 @@ export class AuthService {
       })
     );
   }
+
+  deleteAccount(): Observable<any> {
+    const token = this.getToken();
+    let headers = new HttpHeaders();
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
+    return this.http.delete<any>(`${this.apiUrl}/me`, { headers }).pipe(
+      tap(() => {
+        this.logout();
+      })
+    );
+  }
 }
