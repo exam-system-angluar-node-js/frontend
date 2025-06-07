@@ -1,13 +1,14 @@
 <div class="min-h-screen bg-gray-50 dark:bg-zinc-900 py-8">
   <div class="max-w-7xl mx-auto px-4 sm:px-6">
     <!-- Welcome Section -->
-    <div class="bg-gradient-to-r from-purple-600 to-blue-600 flex justify-between items-center rounded-2xl p-8 mb-8 shadow-lg">
-     <div>
-       <h1 class="text-4xl mb-2 font-bold text-white">Welcome back, {{studentName}}</h1>
-      <p class="text-purple-100">
-        Track your scores and performance across all exams.
-      </p>
-     </div>
+    <div
+      class="bg-gradient-to-r from-purple-600 to-blue-600 flex justify-between items-center rounded-2xl p-8 mb-8 shadow-lg">
+      <div>
+        <h1 class="text-4xl mb-2 font-bold text-white">Welcome back, {{studentName}}</h1>
+        <p class="text-purple-100">
+          Track your scores and performance across all exams.
+        </p>
+      </div>
 
       <!-- Refresh Button -->
       <button (click)="refreshData()" [disabled]="isLoading"
@@ -21,19 +22,19 @@
     </div>
 
     <!-- Loading State -->
-   @if (isLoading) {
-  <div class="flex flex-col items-center justify-center p-12">
-    <div class="relative">
-      <div class="w-16 h-16 border-4 border-purple-200 dark:border-purple-800 rounded-full animate-spin"></div>
-      <div
-        class="absolute top-0 left-0 w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin">
+    @if (isLoading) {
+    <div class="flex flex-col items-center justify-center p-12">
+      <div class="relative">
+        <div class="w-16 h-16 border-4 border-purple-200 dark:border-purple-800 rounded-full animate-spin"></div>
+        <div
+          class="absolute top-0 left-0 w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin">
+        </div>
       </div>
+      <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-400">
+        Loading dashboard...
+      </p>
     </div>
-    <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-400">
-      Loading dashboard...
-    </p>
-  </div>
-  }
+    }
     <!-- Error State -->
     <div *ngIf="hasError && !isLoading"
       class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 mb-8">
@@ -148,7 +149,20 @@
             <div class="w-3 h-3 rounded-full bg-purple-500 animate-pulse"></div>
           </div>
           <div class="h-80">
+            @if (noPerformanceData) {
+            <div class="h-full flex flex-col items-center justify-center text-center p-6">
+              <div class="bg-purple-50 dark:bg-purple-900/20 rounded-full p-4 mb-4">
+                <svg class="w-12 h-12 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h4 class="text-lg font-semibold text-zinc-700 dark:text-zinc-300 mb-2">No Data Available</h4>
+              <p class="text-sm text-zinc-500 dark:text-zinc-400">Complete some exams to see your score distribution</p>
+            </div>
+            } @else {
             <canvas #performanceChart id="performanceChart"></canvas>
+            }
           </div>
         </div>
 
@@ -161,7 +175,21 @@
             <div class="w-3 h-3 rounded-full bg-purple-500 animate-pulse"></div>
           </div>
           <div class="h-80">
+            @if (noCategoryData) {
+            <div class="h-full flex flex-col items-center justify-center text-center p-6">
+              <div class="bg-purple-50 dark:bg-purple-900/20 rounded-full p-4 mb-4">
+                <svg class="w-12 h-12 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h4 class="text-lg font-semibold text-zinc-700 dark:text-zinc-300 mb-2">No Data Available</h4>
+              <p class="text-sm text-zinc-500 dark:text-zinc-400">Complete exams in different categories to see your
+                performance</p>
+            </div>
+            } @else {
             <canvas #categoryChart id="categoryChart"></canvas>
+            }
           </div>
         </div>
       </div>
@@ -178,19 +206,18 @@
         </div>
 
         <!-- No Results Message -->
-        <div *ngIf="recentResults.length === 0" class="text-center py-8">
-          <svg class="mx-auto h-12 w-12 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-            No exam results found
-          </p>
-          <p class="text-xs text-zinc-400">
-            Take your first exam to see results here
-          </p>
+        @if (recentResults.length === 0) {
+        <div class="h-full flex flex-col items-center justify-center text-center p-6">
+          <div class="bg-purple-50 dark:bg-purple-900/20 rounded-full p-4 mb-4">
+            <svg class="mx-auto h-12 w-12  text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+            <h4 class="text-lg font-semibold text-zinc-700 dark:text-zinc-300 mb-2">No Exam Results Found</h4>
+              <p class="text-sm text-zinc-500 dark:text-zinc-400">Take your first exam to see results here</p>
         </div>
-
+        }
         <!-- Results List -->
         <div class="space-y-4" *ngIf="recentResults.length > 0">
           <div *ngFor="let result of recentResults; trackBy: trackByResultId"
