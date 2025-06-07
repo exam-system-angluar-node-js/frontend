@@ -275,12 +275,12 @@ export class DataService {
     );
   }
 
-  getExamResult(examId: number): Observable<any> {
+  getExamResult(resultId: number): Observable<any> {
     const user = this.authService.getUser();
     if (!user?.id) throw new Error('No user ID found');
 
     return this.http.get<any>(
-      `${this.baseUrl}/exams/result/${examId}/${user.id}`
+      `${this.baseUrl}/exams/result/${resultId}/${user.id}`
     );
   }
 
