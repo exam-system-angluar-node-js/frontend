@@ -58,7 +58,7 @@ export class AdminManageComponent implements OnInit {
             (exam) => exam.id !== this.examToDelete
           );
           this.examCountService.updateAdminExamCount(this.exams.length);
-          this.toastr.success(`${exam?.title} has been deleted`, '✅ Deleted');
+          this.toastr.success(`${exam?.title} has been deleted`, 'Successfully Deleted');
         },
         error: (error) => {
           console.error('Error deleting exam:', error);
