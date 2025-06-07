@@ -118,47 +118,9 @@
   </div>
 
   <!-- Delete Account Confirmation Modal -->
-  @if(showDeleteConfirmation){
-  <div class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
-      <div class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" aria-hidden="true"></div>
-      <div
-        class="relative transform overflow-hidden rounded-lg bg-zinc-900/95 backdrop-blur-sm text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-zinc-700/50">
-        <div class="bg-zinc-900/95 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-          <div class="sm:flex sm:items-start">
-            <div
-              class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-500/10 sm:mx-0 sm:h-10 sm:w-10">
-              <svg class="h-6 w-6 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-              <h3 class="text-lg font-medium leading-6 text-white" id="modal-title">
-                Delete Account
-              </h3>
-              <div class="mt-2">
-                <p class="text-sm text-gray-300">
-                  Are you sure you want to delete your account? This action cannot be undone and all your data will be
-                  permanently erased.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="bg-zinc-800/95 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 border-t border-zinc-700/50">
-          <button type="button" (click)="confirmDelete()"
-            class="cursor-pointer inline-flex w-full justify-center rounded-md border border-transparent bg-red-500/10 px-4 py-2 text-base font-medium text-red-500 shadow-sm hover:bg-red-500/20 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
-            Delete Account
-          </button>
-          <button type="button" (click)="cancelDelete()"
-            class="cursor-pointer mt-3 inline-flex w-full justify-center rounded-md border border-zinc-700/50 bg-zinc-800/50 px-4 py-2 text-base font-medium text-gray-300 shadow-sm hover:bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-zinc-500/50 focus:ring-offset-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-  }
+  <app-confirm-modal [isOpen]="showDeleteConfirmation" [isLoading]="isDeleting" (confirm)="confirmDelete()"
+    (cancel)="cancelDelete()" title="Delete Account"
+    message="Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently erased."
+    confirmText="Delete Account" cancelText="Cancel">
+  </app-confirm-modal>
 </div>
