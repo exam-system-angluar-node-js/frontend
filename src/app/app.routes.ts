@@ -15,8 +15,11 @@ import { EditExamComponent } from './pages/admin/edit-exam/edit-exam.component';
 import { ExamsComponent } from './pages/exams/exams.component';
 import { ExamStartComponent } from './pages/exam-start/exam-start.component';
 import { CheatingReportsComponent } from './pages/admin/cheating-reports/cheating-reports.component';
+import { ContactComponent } from './pages/contact/contact.component';
 import { StudentGuard } from './guards/student.guard';
 import { TeacherGuard } from './guards/teacher.guard';
+import { StudentManagementComponent } from './pages/admin/student-management/student-management.component';
+import { FAQComponent } from './pages/student/faq/faq.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -48,6 +51,7 @@ export const routes: Routes = [
       { path: 'exams', component: ExamsComponent },
       { path: 'exams/:id', component: ExamComponent },
       { path: 'exams/:id/start', component: ExamStartComponent },
+      { path: 'help', component: FAQComponent },
     ],
   },
   {
@@ -61,6 +65,8 @@ export const routes: Routes = [
       { path: 'allresults', component: AdminResultsComponent },
       { path: 'manage/addexam', component: AddExamComponent },
       { path: 'manage/editexam/:id', component: EditExamComponent },
+      { path: 'contact', component: ContactComponent },
+      { path: 'students', component: StudentManagementComponent },
       { path: 'cheating-logs', component: CheatingReportsComponent },
     ],
   },

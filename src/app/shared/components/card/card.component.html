@@ -111,13 +111,14 @@
     } @else {
     <a
       (click)="sendExams()"
-      [routerLink]="['/student', 'exams', id]"
+      [routerLink]="isTaken ? null : ['/student', 'exams', id]"
       class="block w-full"
     >
       <button
-        class="w-full cursor-pointer inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-white bg-purple-600 dark:bg-purple-600 border border-transparent rounded-lg shadow-sm hover:bg-purple-700 dark:hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-600 dark:focus:ring-offset-zinc-900 transition-colors duration-150"
+        [disabled]="isTaken"
+        [class]="isTaken ? 'w-full cursor-not-allowed inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-white bg-gray-400 dark:bg-gray-600 border border-transparent rounded-lg shadow-sm' : 'w-full cursor-pointer inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-white bg-purple-600 dark:bg-purple-600 border border-transparent rounded-lg shadow-sm hover:bg-purple-700 dark:hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-600 dark:focus:ring-offset-zinc-900 transition-colors duration-150'"
       >
-        View More
+        {{ isTaken ? 'Already Taken' : 'View More' }}
       </button>
     </a>
     }
