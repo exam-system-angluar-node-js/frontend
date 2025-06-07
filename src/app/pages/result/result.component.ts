@@ -36,7 +36,7 @@ interface ResultQuestion {
   styleUrl: './result.component.css',
 })
 export class ResultComponent implements OnInit, OnDestroy {
-  examId: string | null = null;
+  resultId: string | null = null;
   resultData: ExamResultData | null = null;
   isLoading = true;
   error = false;
@@ -90,9 +90,9 @@ export class ResultComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.examId = this.route.snapshot.paramMap.get('id');
+    this.resultId = this.route.snapshot.paramMap.get('id');
 
-    if (this.examId) {
+    if (this.resultId) {
       this.loadExamResult();
     } else {
       this.handleError('Invalid exam ID');
@@ -104,12 +104,12 @@ export class ResultComponent implements OnInit, OnDestroy {
   }
 
   private loadExamResult(): void {
-    if (!this.examId) return;
+    if (!this.resultId) return;
 
-    const examId = parseInt(this.examId);
+    const resultId = parseInt(this.resultId);
 
     // Get the exam result data
-    const resultSub = this.dataService.getExamResult(examId).subscribe({
+    const resultSub = this.dataService.getExamResult(resultId).subscribe({
       next: (result) => {
         console.log('Exam result:', result);
         // Handle both direct response and wrapped response formats
