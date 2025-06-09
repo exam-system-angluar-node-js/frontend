@@ -19,6 +19,7 @@ export class LoginComponent {
   showAlert = false;
   alertMessage = '';
   alertType = 'error';
+  isLoading = false;
 
   constructor(private router: Router, private authService: AuthService) { }
   loginForm = new FormGroup({
@@ -49,7 +50,7 @@ export class LoginComponent {
     this.showAlert = true;
     setTimeout(() => {
       this.showAlert = false;
-    }, 3000);
+    }, 3500);
   }
 
   login() {
@@ -59,6 +60,7 @@ export class LoginComponent {
       const email = this.getEmail?.value;
       const password = this.getPassword?.value;
       if (email && password) {
+        this.isLoading = true;
         this.authService
           .login({
             email,
@@ -84,10 +86,20 @@ export class LoginComponent {
               }
             },
             error: (err) => {
+              this.isLoading = false;
               console.log('login error', err);
-              this.showAlertMessage('Invalid email or password. Please try again.', 'error');
+              if (err.status === 0) {
+                this.showAlertMessage('Unable to connect to the server. Please check if the server is running.', 'error');
+              } else if (err.status === 400) {
+                this.showAlertMessage('Invalid email or password. Please try again.', 'error');
+              } else {
+                this.showAlertMessage('An error occurred. Please try again later.', 'error');
+              }
               this.loginForm.reset();
             },
+            complete: () => {
+              this.isLoading = false;
+            }
           });
       }
     } else {

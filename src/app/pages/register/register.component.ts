@@ -19,8 +19,9 @@ export class RegisterComponent {
   showAlert = false;
   alertMessage = '';
   alertType = 'error';
+  isLoading = false;
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(private router: Router, private authService: AuthService) { }
   registerForm = new FormGroup({
     username: new FormControl('', [
       Validators.required,
@@ -65,7 +66,7 @@ export class RegisterComponent {
     this.showAlert = true;
     setTimeout(() => {
       this.showAlert = false;
-    }, 3000);
+    }, 3500);
   }
   register() {
     const name = this.getName?.value;
@@ -78,6 +79,7 @@ export class RegisterComponent {
       if (this.getPassword?.value === this.getConfirmPassword?.value) {
         console.log(this.registerForm.value);
         if (name && email && password && confirmPassword && role) {
+          this.isLoading = true;
           this.authService
             .register({
               name,
@@ -94,14 +96,20 @@ export class RegisterComponent {
                 }, 1500);
               },
               error: (err) => {
+                this.isLoading = false;
                 console.log('error happen in the register', err);
-                if (err.status === 409) {
+                if (err.status === 0) {
+                  this.showAlertMessage('Unable to connect to the server. Please check if the server is running.', 'error');
+                } else if (err.status === 409) {
                   this.showAlertMessage('Email already registered. Please use a different email.', 'error');
                 } else {
-                  this.showAlertMessage('Registration failed. Please try again.', 'error');
+                  this.showAlertMessage('Registration failed. Please try again later.', 'error');
                 }
                 this.registerForm.reset();
               },
+              complete: () => {
+                this.isLoading = false;
+              }
             });
         }
       } else {
