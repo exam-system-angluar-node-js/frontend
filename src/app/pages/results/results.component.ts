@@ -46,14 +46,15 @@ export class ResultsComponent implements OnInit {
     this.dataService.getStudentAllResults().subscribe({
       next: (examResults: StudentExamResult[]) => {
         this.results = this.transformResults(examResults);
+        this.filteredResults = [...this.results]; // Initialize filteredResults with all results
         this.loading = false;
       },
       error: (error) => {
         console.error('Error loading results:', error);
         this.error = 'Failed to load results. Please try again.';
         this.loading = false;
-        // Fallback to empty array on error
         this.results = [];
+        this.filteredResults = [];
       },
     });
   }
@@ -112,7 +113,7 @@ export class ResultsComponent implements OnInit {
 
   handleSearch(event: Event): void {
     const inputElement = event.target as HTMLInputElement;
-    this.searchResult = inputElement.value.toLowerCase();
+    this.searchResult = inputElement.value.trim().toLowerCase();
     this.applyFilters();
   }
 
@@ -123,11 +124,18 @@ export class ResultsComponent implements OnInit {
   }
 
   applyFilters(): void {
+    if (!this.results.length) {
+      this.filteredResults = [];
+      return;
+    }
+
     this.filteredResults = this.results.filter((result) => {
-      const matchesSearch = result.title.toLowerCase().includes(this.searchResult);
-      const matchesCategory =
-        this.title === 'all' ||
-        result.title.toLowerCase() === this.title;
+      const matchesSearch = this.searchResult === '' ||
+        result.title.toLowerCase().includes(this.searchResult);
+      const matchesCategory = this.title === 'all' ||
+        (this.title === 'passed' && result.scorePercent >=60) ||
+        (this.title === 'failed' && result.scorePercent <60);
+
       return matchesSearch && matchesCategory;
     });
   }

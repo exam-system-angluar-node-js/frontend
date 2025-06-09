@@ -13,14 +13,14 @@ import { AuthService } from '../../../services/auth.service';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { ExamService } from '../../../services/exam.service';
 import { ExamCountService } from '../../../services/exam-count.service';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule,RouterLink],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css'],
 })
