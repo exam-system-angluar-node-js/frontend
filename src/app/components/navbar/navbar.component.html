@@ -50,7 +50,7 @@
         <a [routerLink]="
             queryPath === 'student'
               ? ['/student', 'dashboard']
-              : ['/admin', 'dashboard']" class="flex ms-2 md:me-24">
+              : ['/teacher', 'dashboard']" class="flex ms-2 md:me-24">
           <img src="logo.png" class="h-8 me-3" alt="FlowBite Logo" />
           <span class="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap dark:text-white">TolabTest</span>
         </a>
@@ -83,7 +83,7 @@
                 <a (click)="onRouting()" [routerLink]="
             queryPath === 'student'
               ? ['/student', 'dashboard']
-              : ['/admin', 'dashboard']"
+              : ['/teacher', 'dashboard']"
                   class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-zinc-900 dark:hover:text-white transition-colors duration-200"
                   role="menuitem">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -101,7 +101,7 @@
                 <a (click)="onRouting()" [routerLink]="
             queryPath === 'student'
               ? ['/student', 'settings']
-              : ['/admin', 'settings']"
+              : ['/teacher', 'settings']"
                   class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-zinc-900 dark:hover:text-white transition-colors duration-200"
                   role="menuitem">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -119,7 +119,7 @@
                 <a (click)="onRouting()" [routerLink]="
             queryPath === 'student'
               ? ['/student', 'results']
-              : ['/admin', 'allresults']"
+              : ['/teacher', 'tolab','results']"
                   class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-zinc-900 dark:hover:text-white transition-colors duration-200"
                   role="menuitem">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"

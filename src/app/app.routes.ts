@@ -39,6 +39,11 @@ export const routes: Routes = [
     redirectTo: '/teacher/dashboard',
     pathMatch: 'full',
   },
+   {
+    path: 'teacher/cheating',
+    redirectTo: '/teacher/cheating/logs',
+    pathMatch: 'full',
+  },
   {
     path: 'student',
     component: LayoutComponent,
@@ -62,12 +67,12 @@ export const routes: Routes = [
       { path: 'dashboard', component: AdminComponent },
       { path: 'settings', component: SettingsComponent },
       { path: 'manage', component: AdminManageComponent },
-      { path: 'allresults', component: AdminResultsComponent },
+      { path: 'tolab/results', component: AdminResultsComponent },
       { path: 'manage/addexam', component: AddExamComponent },
       { path: 'manage/editexam/:id', component: EditExamComponent },
       { path: 'contact', component: ContactComponent },
-      { path: 'students', component: StudentManagementComponent },
-      { path: 'cheating-logs', component: CheatingReportsComponent },
+      { path: 'tolab', component: StudentManagementComponent },
+      { path: 'cheating/logs', component: CheatingReportsComponent },
     ],
   },
 ];

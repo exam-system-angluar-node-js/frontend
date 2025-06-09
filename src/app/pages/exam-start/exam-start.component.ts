@@ -299,7 +299,7 @@ export class ExamStartComponent implements OnInit, OnDestroy {
         this.enableKeydown();
         this.enableContextMenu();
         this.exitFullscreen();
-        this.router.navigate(['/student/results', this.examId]);
+        this.router.navigate(['/student/results', this.resultId]);
       },
       error: (err: any) => {
         console.error('Error submitting exam:', err);

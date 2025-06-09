@@ -6,6 +6,7 @@ import { DataService } from '../../../services/data.service';
 import { AuthService } from '../../../services/auth.service';
 import { ExamService } from '../../../services/exam.service';
 import { ExamCountService } from '../../../services/exam-count.service';
+import { ConfirmModalComponent } from "../../../shared/components/confirm-modal/confirm-modal.component";
 
 interface Student {
   id: number;
@@ -23,18 +24,26 @@ interface Student {
 @Component({
   selector: 'app-student-management',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, ConfirmModalComponent],
   templateUrl: './student-management.component.html',
 })
 export class StudentManagementComponent implements OnInit {
   students: Student[] = [];
   filteredStudents: Student[] = [];
   searchTerm: string = '';
+  statusFilter: string = 'all';
   currentUser: any = null;
   loading: boolean = true;
   error: string | null = null;
-  showDeleteConfirm: boolean = false;
+  showDeleteModal = false;
   studentToDelete: Student | null = null;
+  isDeleting = false;
+
+  // Pagination properties
+  currentPage = 1;
+  itemsPerPage = 10;
+  totalPages = 0;
+  pagedStudents: Student[] = [];
 
   constructor(
     private dataService: DataService,
@@ -46,7 +55,6 @@ export class StudentManagementComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Redirect if not a teacher
     if (this.currentUser?.role !== 'teacher') {
       window.location.href = '/dashboard';
       return;
@@ -56,7 +64,6 @@ export class StudentManagementComponent implements OnInit {
   }
 
   private loadExamsForCount(): void {
-    // Fetch exams for the admin exam count in the sidebar
     this.examService.getAllExamsForTeacher().subscribe(exams => {
       this.examCountService.updateAdminExamCount(exams?.length ?? 0);
     });
@@ -69,11 +76,13 @@ export class StudentManagementComponent implements OnInit {
   loadStudents() {
     this.loading = true;
     this.error = null;
-    
+
     this.dataService.getAllStudents().subscribe({
       next: (response) => {
         this.students = response.data;
         this.filteredStudents = [...this.students];
+        this.calculateTotalPages();
+        this.paginateStudents();
         this.loading = false;
       },
       error: (err) => {
@@ -84,17 +93,73 @@ export class StudentManagementComponent implements OnInit {
     });
   }
 
-  filterStudents() {
-    if (!this.searchTerm.trim()) {
-      this.filteredStudents = [...this.students];
+  refreshStudents(): void {
+    this.loadStudents();
+    this.loadExamsForCount();
+  }
+
+  handleSearch(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.searchTerm = input.value.trim().toLowerCase();
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  handleStatusChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.statusFilter = select.value;
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  applyFilters(): void {
+    if (!this.students.length) {
+      this.filteredStudents = [];
+      this.pagedStudents = [];
       return;
     }
 
-    const searchLower = this.searchTerm.toLowerCase();
-    this.filteredStudents = this.students.filter(student => 
-      student.name.toLowerCase().includes(searchLower) ||
-      student.email.toLowerCase().includes(searchLower)
-    );
+    this.filteredStudents = this.students.filter(student => {
+      const matchesSearch = this.searchTerm === '' ||
+        student.name.toLowerCase().includes(this.searchTerm) ||
+        student.email.toLowerCase().includes(this.searchTerm);
+
+      const matchesStatus =
+        this.statusFilter === 'all' ||
+        (this.statusFilter === 'excellent' && student.examResults.averageScore >= 70) ||
+        (this.statusFilter === 'good' && student.examResults.averageScore >= 50 && student.examResults.averageScore < 70) ||
+        (this.statusFilter === 'needs_improvement' && student.examResults.averageScore < 50);
+
+      return matchesSearch && matchesStatus;
+    });
+
+    this.calculateTotalPages();
+    this.paginateStudents();
+  }
+
+  calculateTotalPages(): void {
+    this.totalPages = Math.ceil(this.filteredStudents.length / this.itemsPerPage);
+  }
+
+  paginateStudents(): void {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    this.pagedStudents = this.filteredStudents.slice(startIndex, endIndex);
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.paginateStudents();
+    }
+  }
+
+  nextPage(): void {
+    this.goToPage(this.currentPage + 1);
+  }
+
+  previousPage(): void {
+    this.goToPage(this.currentPage - 1);
   }
 
   getPassRate(student: Student): number {
@@ -110,31 +175,38 @@ export class StudentManagementComponent implements OnInit {
 
   confirmDelete(student: Student) {
     this.studentToDelete = student;
-    this.showDeleteConfirm = true;
+    this.showDeleteModal = true;
   }
 
   cancelDelete() {
     this.studentToDelete = null;
-    this.showDeleteConfirm = false;
+    this.showDeleteModal = false;
+    this.isDeleting = false;
   }
 
   deleteStudent() {
     if (!this.studentToDelete) return;
 
-    this.loading = true;
+    this.isDeleting = true;
     this.dataService.deleteStudent(this.studentToDelete.id).subscribe({
       next: () => {
         this.students = this.students.filter(s => s.id !== this.studentToDelete?.id);
         this.filteredStudents = this.filteredStudents.filter(s => s.id !== this.studentToDelete?.id);
-        this.showDeleteConfirm = false;
+        this.showDeleteModal = false;
         this.studentToDelete = null;
-        this.loading = false;
+        this.isDeleting = false;
+        this.calculateTotalPages();
+        this.paginateStudents();
       },
       error: (err) => {
         this.error = 'Failed to delete student. Please try again later.';
-        this.loading = false;
+        this.isDeleting = false;
         console.error('Error deleting student:', err);
       }
     });
+  }
+
+  getPageNumbers(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
 } 
