@@ -13,7 +13,7 @@
   <app-sidebar [isOpen]="togglerState" [userDetails]="currentUser" [queryPath]="currentUser?.role"
     [examLength]="stats.totalExams" [logout]="logout.bind(this)" (closeSidebar)="onToggleState(false)"></app-sidebar>
   <div class="p-4" [class.ml-64]="togglerState">
-    <div class="p-4 mt-14">
+    <div class="p-4 mt-14 overflow-x-hidden">
       <router-outlet></router-outlet>
     </div>
   </div>
