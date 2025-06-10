@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50 dark:bg-zinc-900 py-8">
+<div class="min-h-screen bg-gray-50 dark:bg-zinc-900 py-4">
   <div class="max-w-7xl mx-auto px-4 sm:px-6">
     <!-- Header -->
     <div class="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-8 mb-8 shadow-lg">
@@ -8,7 +8,7 @@
             Welcome back, {{ teacherName }}
           </h1>
           <p class="text-purple-100">
-            Here's what's happening with your exams today.
+            Here's what's happening with your students today.
           </p>
         </div>
         <button (click)="refreshData()" [disabled]="loading"

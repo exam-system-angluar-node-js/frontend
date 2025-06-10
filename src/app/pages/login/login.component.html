@@ -13,24 +13,18 @@
       <!-- Main Content -->
       <div class="relative">
         <!-- Brand Name with Icon -->
-        <div class="flex items-center justify-center gap-4 mb-5">
-          <div
-            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-200">
-            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
+         <div class="flex items-center justify-center gap-4 mb-5">
+            <img class="w-18 h-18 flex items-center justify-center transform hover:scale-105 transition-transform duration-200" src="logo.png" alt="TolabExams logo">
           <h2
-            class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 tracking-tight">
-            TolabTest
+            class="text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-b from-gray-50 to-purple-500 tracking-tight mt-3">
+            TolabExams
           </h2>
         </div>
 
         <!-- Welcome Section -->
         <div class="text-center space-y-6">
           <div
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 text-sm font-medium shadow-sm">
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-100 dark:bg-purple-500/40 text-purple-600 dark:text-purple-300 text-sm font-medium shadow-sm">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
@@ -38,7 +32,7 @@
             Welcome Back
           </div>
           <div class="space-y-3">
-            <h1 class="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">
+            <h1 class="text-3xl font-semibold text-zinc-900 dark:text-white tracking-tight">
               Sign in to your account
             </h1>
             <p class="text-zinc-600 dark:text-zinc-400 text-base max-w-md mx-auto leading-relaxed">
@@ -193,7 +187,7 @@
 
         <!-- Submit Button -->
         <button type="submit" [disabled]="isLoading"
-          class="cursor-pointer w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed">
+          class="cursor-pointer w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-800 hover:from-purple-700 hover:to-indigo-900 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed">
           @if (isLoading) {
           <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
             viewBox="0 0 24 24">

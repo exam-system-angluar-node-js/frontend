@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CardComponent } from '../../shared/components/card/card.component';
 import { DataService, ExamData, StudentExamResult } from '../../services/data.service';
 import { fromEvent, Subject, takeUntil, forkJoin } from 'rxjs';
+import { Title, Meta } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-exams',
@@ -19,11 +20,23 @@ export class ExamsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   takenExamTitles: Set<string> = new Set();
 
-  constructor(private dataService: DataService) {}
+  constructor(
+    private dataService: DataService,
+    private titleService: Title,
+    private metaService: Meta
+  ) { }
 
   ngOnInit(): void {
+    this.titleService.setTitle('Available Exams');
+    this.metaService.updateTag({
+      name: 'description',
+      content: 'Browse and take available exams. Filter by category, search for specific exams, and track your progress.'
+    });
+    this.metaService.updateTag({
+      name: 'keywords',
+      content: 'exams, online exams, education platform, student assessment, exam categories'
+    });
     this.loadExams();
-    // Temporary: Debug the raw API response
     this.debugApiResponse();
   }
 
@@ -32,7 +45,6 @@ export class ExamsComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // Temporary debugging method - remove after fixing
   debugApiResponse(): void {
     this.dataService
       .debugExamData()
@@ -63,47 +75,37 @@ export class ExamsComponent implements OnInit, OnDestroy {
   loadExams(): void {
     this.loading = true;
     this.error = '';
-
-    // Load both exams and results in parallel
     forkJoin({
       exams: this.dataService.getExams(),
       results: this.dataService.getStudentAllResults()
     })
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: ({ exams, results }) => {
-        console.log('=== DEBUG: Student Results ===');
-        console.log('All results:', results);
-        
-        // Store taken exam titles
-        this.takenExamTitles = new Set(results.map(result => result.examTitle));
-        console.log('Taken exam titles:', Array.from(this.takenExamTitles));
-        
-        // Process exams
-        this.exams = exams;
-        this.filteredExams = exams;
-        this.loading = false;
-
-        // Update the exam count in the service
-        this.dataService.changeData(exams);
-
-        // Debug: Log transformed exams
-        console.log('=== TRANSFORMED EXAMS ===');
-        exams.forEach((exam) => {
-          console.log(
-            `Exam: ${exam.title}, ID: ${exam.id}, Questions: ${exam.questionsCount}, Taken: ${this.isExamTaken(exam.title)}`
-          );
-        });
-        console.log('=== END TRANSFORMED EXAMS ===');
-      },
-      error: (error) => {
-        console.error('Error loading exams:', error);
-        this.error = 'Failed to load exams. Please try again later.';
-        this.loading = false;
-        this.exams = [];
-        this.filteredExams = [];
-      },
-    });
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ({ exams, results }) => {
+          console.log('=== DEBUG: Student Results ===');
+          console.log('All results:', results);
+          this.takenExamTitles = new Set(results.map(result => result.examTitle));
+          console.log('Taken exam titles:', Array.from(this.takenExamTitles));
+          this.exams = exams;
+          this.filteredExams = exams;
+          this.loading = false;
+          this.dataService.changeData(exams);
+          console.log('=== TRANSFORMED EXAMS ===');
+          exams.forEach((exam) => {
+            console.log(
+              `Exam: ${exam.title}, ID: ${exam.id}, Questions: ${exam.questionsCount}, Taken: ${this.isExamTaken(exam.title)}`
+            );
+          });
+          console.log('=== END TRANSFORMED EXAMS ===');
+        },
+        error: (error) => {
+          console.error('Error loading exams:', error);
+          this.error = 'Failed to load exams. Please try again later.';
+          this.loading = false;
+          this.exams = [];
+          this.filteredExams = [];
+        },
+      });
   }
 
   handleSearch(event: Event): void {
@@ -134,8 +136,8 @@ export class ExamsComponent implements OnInit, OnDestroy {
 
   get areAllExamsEmpty(): boolean {
     return this.filteredExams.every(exam => {
-      const hasQuestions = 
-        (exam.questions && exam.questions.length > 0) || 
+      const hasQuestions =
+        (exam.questions && exam.questions.length > 0) ||
         (exam.questionsCount && exam.questionsCount > 0) ||
         (exam.totalQuestions && exam.totalQuestions > 0);
       return !hasQuestions;
@@ -146,7 +148,7 @@ export class ExamsComponent implements OnInit, OnDestroy {
     return this.takenExamTitles.has(examTitle);
   }
 
-    refreshResults(): void {
-     this.retryLoading();
+  refreshResults(): void {
+    this.retryLoading();
   }
 }

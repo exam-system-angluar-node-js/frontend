@@ -8,6 +8,7 @@ import { ToastrService } from 'ngx-toastr';
 import { forkJoin } from 'rxjs';
 import { Observable } from 'rxjs';
 import { ConfirmModalComponent } from '../../../shared/components/confirm-modal/confirm-modal.component';
+import { Title, Meta } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-edit-exam',
@@ -49,10 +50,23 @@ export class EditExamComponent implements OnInit {
     private questionService: QuestionService,
     private examService: ExamService,
     private router: Router,
-    private toastr: ToastrService
-  ) {}
+    private toastr: ToastrService,
+    private titleService: Title,
+    private metaService: Meta
+  ) { }
 
   ngOnInit(): void {
+    // Set initial title and meta tags
+    this.titleService.setTitle('Edit Exam');
+    this.metaService.updateTag({
+      name: 'description',
+      content: 'Edit exam details, questions, and settings. Modify exam title, description, duration, and manage questions.'
+    });
+    this.metaService.updateTag({
+      name: 'keywords',
+      content: 'edit exam, modify exam, exam questions, exam settings, exam management, teacher dashboard'
+    });
+
     this.examId = this.route.snapshot.params['id'];
     this.loadExamData();
   }
@@ -66,12 +80,21 @@ export class EditExamComponent implements OnInit {
         this.examTitle = exam.title;
         this.examDescription = exam.description;
         this.timeLimit = exam.duration;
+        this.titleService.setTitle(`${exam.title} - Edit Exam`);
+        this.metaService.updateTag({
+          name: 'description',
+          content: `Edit ${exam.title} exam. Modify exam details, questions, and settings. Current duration: ${exam.duration} minutes.`
+        });
+        this.metaService.updateTag({
+          name: 'keywords',
+          content: `edit ${exam.title}, modify exam, ${exam.category}, exam questions, exam settings, ${exam.duration} minutes`
+        });
 
         this.questionService.getQuestions(parseInt(this.examId)).subscribe({
           next: (questions) => {
             console.log('questions', questions);
             this.questions = questions;
-            this.originalQuestions = JSON.parse(JSON.stringify(questions)); // Deep copy
+            this.originalQuestions = JSON.parse(JSON.stringify(questions)); 
             this.isLoading = false;
           },
           error: (err) => {
@@ -103,7 +126,7 @@ export class EditExamComponent implements OnInit {
     this.questionText = question.title;
     this.choices = [...question.options];
     this.correctAnswer = question.answer;
-    this.points = question.points; // Make sure points are also loaded for editing
+    this.points = question.points; 
     this.showAddQuestionForm = true;
   }
 
@@ -122,7 +145,6 @@ export class EditExamComponent implements OnInit {
     };
 
     if (this.editingQuestion) {
-      // Update existing question in the local array
       const index = this.questions.findIndex(
         (q) => q.id === this.editingQuestion!.id
       );
@@ -130,22 +152,19 @@ export class EditExamComponent implements OnInit {
         this.questions[index] = {
           ...this.questions[index],
           ...questionData,
-          id: this.editingQuestion.id, // Preserve the ID
+          id: this.editingQuestion.id, 
         };
         this.toastr.success('Question has been updated', 'Successfully Updated');
       }
       this.editingQuestion = null;
     } else {
-      // Add new question to the local array with a temporary ID
       const newQuestion: Question = {
         ...questionData,
-        id: Date.now(), // Use timestamp as temporary ID
+        id: Date.now(),
       };
       this.questions.push(newQuestion);
       this.toastr.success('Question has been added', 'Successfully Added');
     }
-
-    // Reset form and hide it
     this.resetQuestionForm();
     this.showAddQuestionForm = false;
   }
@@ -167,18 +186,16 @@ export class EditExamComponent implements OnInit {
 
   onDeleteConfirm(): void {
     if (this.questionToDelete === undefined) return;
-    
+
     this.isDeleting = true;
-    
-    // If the question has a real ID, add it to the deletedQuestionIds array
-    if (this.questionToDelete < 1000000) { // Assuming temporary IDs are large timestamps
+
+    if (this.questionToDelete < 1000000) { 
       this.deletedQuestionIds.push(this.questionToDelete);
     }
-    
-    // Remove the question from the local array
+
     this.questions = this.questions.filter((q) => q.id !== this.questionToDelete);
     this.toastr.success('Question marked for deletion', 'Successfully Deleted');
-    
+
     this.isDeleting = false;
     this.showDeleteModal = false;
     this.questionToDelete = undefined;
@@ -196,51 +213,39 @@ export class EditExamComponent implements OnInit {
     const examUpdatePayload = {
       title: this.examTitle,
       description: this.examDescription,
-      duration: this.timeLimit, // Corrected key to 'duration'
+      duration: this.timeLimit, 
     };
 
-    // 1. Update Exam Details
     this.examService.updateExam(parseInt(this.examId), examUpdatePayload).subscribe({
       next: (updatedExam) => {
         console.log('Exam details updated.');
 
-        // 2. Handle Questions (Add, Update, Delete)
         const questionsToProcess: Observable<any>[] = [];
 
-        // Questions to Delete
         this.deletedQuestionIds.forEach(questionId => {
           console.log('Deleting question with ID:', questionId);
           questionsToProcess.push(this.questionService.deleteQuestion(questionId));
         });
-
-        // Questions to Add and Update
         this.questions.forEach(question => {
           if (question.id && question.id < 1000000) {
-            // Existing question - check if modified
             const originalQuestion = this.originalQuestions.find(q => q.id === question.id);
             if (originalQuestion && JSON.stringify(question) !== JSON.stringify(originalQuestion)) {
               console.log('Updating question with ID:', question.id);
               questionsToProcess.push(this.questionService.updateQuestion(question));
             }
           } else {
-            // New question with temporary ID - add it
-            const { id, ...questionToAdd } = question; // Remove temporary ID
+            const { id, ...questionToAdd } = question;
             console.log('Adding new question:', questionToAdd);
-            // Add new questions in a batch after updates/deletions
           }
         });
-
-        // Collect new questions to add in a batch
         const newQuestionsToAdd = this.questions
-          .filter(q => q.id && q.id >= 1000000) // Filter for temporary IDs
-          .map(({ id, ...question }) => question); // Remove temporary IDs
+          .filter(q => q.id && q.id >= 1000000) 
+          .map(({ id, ...question }) => question); 
 
         if (newQuestionsToAdd.length > 0) {
           console.log('Adding new questions in batch:', newQuestionsToAdd);
           questionsToProcess.push(this.questionService.addQuestions(parseInt(this.examId), newQuestionsToAdd));
         }
-
-        // Execute all question-related operations
         if (questionsToProcess.length > 0) {
           forkJoin(questionsToProcess).subscribe({
             next: () => {
@@ -257,7 +262,6 @@ export class EditExamComponent implements OnInit {
             }
           });
         } else {
-          // No question changes, just exam details updated
           this.toastr.success('Exam details saved successfully', 'Success');
           this.isLoading = false;
           this.router.navigate(['/teacher/manage']);

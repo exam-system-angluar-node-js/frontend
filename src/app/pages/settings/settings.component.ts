@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,6 +6,7 @@ import { AuthService } from '../../services/auth.service';
 import { FileUploadService } from '../../services/file-upload.service';
 import { ToastrService } from 'ngx-toastr';
 import { ConfirmModalComponent } from '../../shared/components/confirm-modal/confirm-modal.component';
+import { Title, Meta } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-settings',
@@ -14,7 +15,7 @@ import { ConfirmModalComponent } from '../../shared/components/confirm-modal/con
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css'
 })
-export class SettingsComponent {
+export class SettingsComponent implements OnInit {
   deleteData = {
     email: '',
     confirmation: ''
@@ -36,10 +37,28 @@ export class SettingsComponent {
     private sanitizer: DomSanitizer,
     private authService: AuthService,
     private fileUploadService: FileUploadService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private titleService: Title,
+    private metaService: Meta
   ) {
     this.initializeUserInfo();
   }
+
+  ngOnInit(): void {
+    this.titleService.setTitle('Profile Settings');
+    this.metaService.updateTag({
+      name: 'description',
+      content: 'Manage your account settings, update your profile picture, and control your account preferences. Secure your account and customize your experience.'
+    });
+    this.metaService.updateTag({
+      name: 'keywords',
+      content: 'account settings, profile settings, account management, profile picture, account security, user preferences'
+    });
+
+
+  }
+
+
 
   private initializeUserInfo(): void {
     this.currentUser = this.authService.currentUserValue;
@@ -59,7 +78,6 @@ export class SettingsComponent {
         return;
       }
 
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         this.toastr.error('Image size should be less than 5MB');
         return;
@@ -88,7 +106,6 @@ export class SettingsComponent {
         this.isUploading = false;
       }
 
-      // Update the user profile with the new imageUrl
       const res = await this.authService.updateProfile({ avatar: imageUrl }).toPromise();
       if (res && res.user) {
         this.userDetails = res.user;
@@ -96,13 +113,11 @@ export class SettingsComponent {
       this.avatarPreview = null;
       this.selectedFile = null;
 
-      // Show toastr and reload after it disappears
       const toastRef = this.toastr.success('Profile changes saved!');
       toastRef.onHidden.subscribe(() => {
         window.location.reload();
       });
 
-      // Clear the file input
       (document.getElementById('avatar-upload') as HTMLInputElement).value = '';
 
     } catch (error) {
@@ -112,13 +127,11 @@ export class SettingsComponent {
     }
   }
 
-  // Delete Account Validation
   canDelete(): boolean {
     return this.deleteData.email === this.userDetails?.email &&
       this.deleteData.confirmation.toUpperCase() === 'DELETE';
   }
 
-  // Delete Account Handler
   deleteAccount(): void {
     if (!this.canDelete()) {
       this.toastr.error('Please fill in all fields correctly', 'Validation Error');
@@ -164,7 +177,6 @@ export class SettingsComponent {
     });
   }
 
-  // Reset Delete Form
   resetDeleteForm(): void {
     this.deleteData = { email: '', confirmation: '' };
   }

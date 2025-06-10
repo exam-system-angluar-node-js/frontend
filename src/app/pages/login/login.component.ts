@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -8,6 +8,7 @@ import {
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { Title, Meta } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-login',
@@ -15,13 +16,25 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   showAlert = false;
   alertMessage = '';
   alertType = 'error';
   isLoading = false;
 
-  constructor(private router: Router, private authService: AuthService) { }
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private titleService: Title,
+    private metaService: Meta
+  ) { }
+
+  ngOnInit() {
+    this.titleService.setTitle('TolabExams | Login');
+    this.metaService.updateTag({ name: 'description', content: 'Sign in to your account on our exam platform. Access your dashboard, take exams, and manage your educational resources.' });
+    this.metaService.updateTag({ name: 'keywords', content: 'login, sign in, exam platform, student login, teacher login, education platform' });
+  }
+
   loginForm = new FormGroup({
     email: new FormControl('', [
       Validators.required,

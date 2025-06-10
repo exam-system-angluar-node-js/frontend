@@ -4,6 +4,7 @@ import { LgcardComponent } from '../../shared/components/lgcard/lgcard.component
 import { DataService, StudentExamResult } from '../../services/data.service';
 import { ExamService } from '../../services/exam.service';
 import { ExamCountService } from '../../services/exam-count.service';
+import { Title, Meta } from '@angular/platform-browser';
 
 interface ResultCardData {
   id: number;
@@ -31,10 +32,22 @@ export class ResultsComponent implements OnInit {
   constructor(
     private dataService: DataService,
     private examService: ExamService,
-    private examCountService: ExamCountService
+    private examCountService: ExamCountService,
+    private titleService: Title,
+    private metaService: Meta
   ) { }
 
   ngOnInit(): void {
+    this.titleService.setTitle('My Results');
+    this.metaService.updateTag({
+      name: 'description',
+      content: 'View your exam results, track your progress, and analyze your performance across different exams.'
+    });
+    this.metaService.updateTag({
+      name: 'keywords',
+      content: 'exam results, student performance, exam scores, education platform, assessment results'
+    });
+
     this.loadResults();
     this.loadExamsForCount();
   }
@@ -46,7 +59,7 @@ export class ResultsComponent implements OnInit {
     this.dataService.getStudentAllResults().subscribe({
       next: (examResults: StudentExamResult[]) => {
         this.results = this.transformResults(examResults);
-        this.filteredResults = [...this.results]; // Initialize filteredResults with all results
+        this.filteredResults = [...this.results]; 
         this.loading = false;
       },
       error: (error) => {
@@ -59,8 +72,8 @@ export class ResultsComponent implements OnInit {
     });
   }
 
+
   private loadExamsForCount(): void {
-    // Fetch exams for the student exam count in the sidebar
     this.examService.getAllExamsForStudent().subscribe(exams => {
       this.examCountService.updateStudentExamCount(exams ?? []);
     });
@@ -133,8 +146,8 @@ export class ResultsComponent implements OnInit {
       const matchesSearch = this.searchResult === '' ||
         result.title.toLowerCase().includes(this.searchResult);
       const matchesCategory = this.title === 'all' ||
-        (this.title === 'passed' && result.scorePercent >=60) ||
-        (this.title === 'failed' && result.scorePercent <60);
+        (this.title === 'passed' && result.scorePercent >= 60) ||
+        (this.title === 'failed' && result.scorePercent < 60);
 
       return matchesSearch && matchesCategory;
     });

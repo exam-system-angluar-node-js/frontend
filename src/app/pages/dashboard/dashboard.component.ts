@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, Cha
 import { Chart, registerables, ChartConfiguration, ChartTypeRegistry, DoughnutControllerChartOptions } from 'chart.js';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { Title, Meta } from '@angular/platform-browser';
 import {
   DataService,
   StudentExamResult,
@@ -53,18 +54,24 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     private authService: AuthService,
     private examService: ExamService,
     private examCountService: ExamCountService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private titleService: Title,
+    private metaService: Meta
   ) {
     this.initializeUserInfo();
   }
 
   ngOnInit() {
+    // Set title and meta tags
+    this.titleService.setTitle(`Student Dashboard`);
+    this.metaService.updateTag({ name: 'description', content: 'Student dashboard showing exam performance, statistics, and recent results' });
+    this.metaService.updateTag({ name: 'keywords', content: 'student dashboard, exam results, performance statistics, education platform' });
+
     this.loadDashboardData();
     this.loadExamsForCount();
   }
 
   ngAfterViewInit() {
-    // Initialize charts after view is ready
     this.initializeCharts();
   }
 

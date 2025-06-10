@@ -9,6 +9,7 @@ import { ToastrService } from 'ngx-toastr';
 import { FocusModeService } from '../../services/focus-mode.service';
 import { AuthService } from '../../services/auth.service';
 import { CheatingDetectorService } from '../../services/cheating-detector.service';
+import { Title, Meta } from '@angular/platform-browser';
 
 interface ExamQuestion {
   id?: number;
@@ -57,10 +58,17 @@ export class ExamStartComponent implements OnInit, OnDestroy {
     private toastr: ToastrService,
     private focusModeService: FocusModeService,
     private authService: AuthService,
-    private cheatingDetectorService: CheatingDetectorService
-  ) {}
+    private cheatingDetectorService: CheatingDetectorService,
+    private titleService: Title,
+    private metaService: Meta
+  ) { }
 
   ngOnInit(): void {
+    // Set initial title and meta tags
+    this.titleService.setTitle('Start Exam');
+    this.metaService.updateTag({ name: 'description', content: 'Begin your exam session. Complete all questions within the time limit and submit your answers.' });
+    this.metaService.updateTag({ name: 'keywords', content: 'start exam, online exam, exam session, student assessment, timed exam' });
+
     this.userRole = this.authService.getUserRole();
     this.examId = this.route.snapshot.paramMap.get('id');
 
@@ -71,72 +79,6 @@ export class ExamStartComponent implements OnInit, OnDestroy {
     }
   }
 
-  // private startExam(): void {
-  //   const examId = parseInt(this.examId!);
-
-  //   if (this.userRole === 'student') {
-  //     this.examSubscription = this.dataService.takeExam(examId).subscribe({
-  //       next: (response: any) => {
-  //         console.log('Take exam response:', response);
-
-  //         this.resultId = response.resultId;
-  //         this.exam = response.exam;
-
-  //         // Check if questions are included in the response
-  //         if (
-  //           response.exam &&
-  //           response.exam.questions &&
-  //           response.exam.questions.length > 0
-  //         ) {
-  //           this.questions = response.exam.questions.map((q: any) => ({
-  //             id: q.id,
-  //             title: q.title,
-  //             options: q.options,
-  //             points: q.points,
-  //             answer: q.answer,
-  //             examId: q.examId,
-  //           }));
-  //           this.questionsLoaded = true;
-  //           this.setExamDuration();
-  //           this.initializeExam();
-  //         } else {
-  //           // If questions are not included, fetch them separately
-  //           console.log(
-  //             'Questions not included in takeExam response, fetching separately...'
-  //           );
-  //           this.setExamDuration();
-  //           this.loadQuestions(examId);
-  //         }
-  //       },
-  //       error: (err: any) => {
-  //         console.error('Error starting exam:', err);
-  //         if (err.status === 403) {
-  //           this.toastr.error(
-  //             'You have already taken this exam or it is not available yet',
-  //             'Access Denied'
-  //           );
-  //         } else {
-  //           this.toastr.error('Failed to start exam', 'Error');
-  //         }
-  //         this.handleError();
-  //       },
-  //     });
-  //   } else {
-  //     // For non-student users (instructors, etc.)
-  //     this.dataService.getExamById(examId).subscribe({
-  //       next: (exam: ExamData) => {
-  //         this.exam = exam;
-  //         this.setExamDuration();
-  //         this.loadQuestions(examId);
-  //       },
-  //       error: (err: any) => {
-  //         console.error('Error fetching exam:', err);
-  //         this.handleError();
-  //       },
-  //     });
-  //   }
-  // }
-
   private startExam(): void {
     const examId = parseInt(this.examId!);
 
@@ -144,14 +86,9 @@ export class ExamStartComponent implements OnInit, OnDestroy {
       this.examSubscription = this.dataService.takeExam(examId).subscribe({
         next: (response: any) => {
           console.log('Take exam response:', response);
-
           this.resultId = response.resultId;
-
-          // Fix: Check if exam exists in response, if not fetch it separately
           if (response.exam) {
             this.exam = response.exam;
-
-            // Check if questions are included in the response
             if (response.exam.questions && response.exam.questions.length > 0) {
               this.questions = response.exam.questions.map((q: any) => ({
                 id: q.id,
@@ -172,8 +109,9 @@ export class ExamStartComponent implements OnInit, OnDestroy {
               this.questionsLoaded = true;
               this.setExamDuration();
               this.initializeExam();
+              // Update meta tags with exam-specific information
+              this.updateMetaTags();
             } else {
-              // Questions not included, fetch them separately
               console.log(
                 'Questions not included in takeExam response, fetching separately...'
               );
@@ -181,7 +119,6 @@ export class ExamStartComponent implements OnInit, OnDestroy {
               this.loadQuestions(examId);
             }
           } else {
-            // Exam data not included in takeExam response, fetch exam data first
             console.log(
               'Exam data not included in takeExam response, fetching exam data...'
             );
@@ -212,7 +149,6 @@ export class ExamStartComponent implements OnInit, OnDestroy {
         },
       });
     } else {
-      // For non-student users (instructors, etc.)
       this.dataService.getExamById(examId).subscribe({
         next: (exam: ExamData) => {
           this.exam = exam;
@@ -289,7 +225,6 @@ export class ExamStartComponent implements OnInit, OnDestroy {
 
     if (this.timerInterval) clearInterval(this.timerInterval);
 
-    // Stop cheating detection when exam is submitted
     this.cheatingDetectorService.stopDetection();
 
     this.dataService.submitExam(this.resultId, this.answers).subscribe({
@@ -326,9 +261,8 @@ export class ExamStartComponent implements OnInit, OnDestroy {
       }
     }, 1000);
 
-    // Start cheating detection when the timer starts
-    const studentId = this.authService.currentUserValue?.id; // Get student ID from AuthService
-    const examId = parseInt(this.examId!); // Get exam ID
+    const studentId = this.authService.currentUserValue?.id;
+    const examId = parseInt(this.examId!);
 
     if (studentId && examId) {
       this.cheatingDetectorService.startDetection(studentId, examId);
@@ -393,8 +327,6 @@ export class ExamStartComponent implements OnInit, OnDestroy {
     if (this.dataSubscription) this.dataSubscription.unsubscribe();
     if (this.examSubscription) this.examSubscription.unsubscribe();
     if (this.questionsSubscription) this.questionsSubscription.unsubscribe();
-
-    // Stop cheating detection when the component is destroyed
     this.cheatingDetectorService.stopDetection();
   }
 
@@ -451,5 +383,24 @@ export class ExamStartComponent implements OnInit, OnDestroy {
       (document as any).webkitExitFullscreen();
     else if ((document as any).msExitFullscreen)
       (document as any).msExitFullscreen();
+  }
+
+  private updateMetaTags(): void {
+    if (this.exam) {
+      // Set dynamic title based on exam title
+      this.titleService.setTitle(`${this.exam.title} - Exam Running`);
+
+      // Set meta description
+      this.metaService.updateTag({
+        name: 'description',
+        content: `Take your ${this.exam.title} exam. ${this.questions.length} questions, ${this.exam.duration} minutes duration. Complete all questions within the time limit.`
+      });
+
+      // Set meta keywords
+      this.metaService.updateTag({
+        name: 'keywords',
+        content: `exam, ${this.exam.category}, ${this.exam.title}, online exam, ${this.exam.duration} minutes, student assessment`
+      });
+    }
   }
 }
