@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DataService } from '../../services/data.service';
 import { Subscription } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
+import { Title, Meta } from '@angular/platform-browser';
 
 interface ExamResultData {
   id: number;
@@ -86,10 +87,17 @@ export class ResultComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private dataService: DataService,
-    private toastr: ToastrService
-  ) {}
+    private toastr: ToastrService,
+    private titleService: Title,
+    private metaService: Meta
+  ) { }
 
   ngOnInit(): void {
+    // Set initial title and meta tags
+    this.titleService.setTitle('Exam Result');
+    this.metaService.updateTag({ name: 'description', content: 'View your exam results, including score, correct answers, and detailed performance analysis.' });
+    this.metaService.updateTag({ name: 'keywords', content: 'exam results, test scores, performance analysis, exam feedback, test results' });
+
     this.resultId = this.route.snapshot.paramMap.get('id');
 
     if (this.resultId) {
@@ -184,6 +192,17 @@ export class ResultComponent implements OnInit, OnDestroy {
       completionDate: resultData.createdAt,
       questions: questions,
     };
+
+    // Update title and meta tags with exam-specific information
+    this.titleService.setTitle(`${this.resultData.examTitle} - Result`);
+    this.metaService.updateTag({
+      name: 'description',
+      content: `View your results for ${this.resultData.examTitle}. Score: ${this.resultData.score}%, ${this.resultData.correctAnswers} correct answers out of ${this.resultData.totalQuestions} questions.`
+    });
+    this.metaService.updateTag({
+      name: 'keywords',
+      content: `${this.resultData.examTitle}, exam results, test scores, ${this.resultData.passed ? 'passed' : 'failed'}, performance analysis`
+    });
 
     this.paginationItems = Array(this.questions.length).fill(0);
   }

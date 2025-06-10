@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Title, Meta } from '@angular/platform-browser';
 import { DataService } from '../../../services/data.service';
 import { AuthService } from '../../../services/auth.service';
 import { ExamService } from '../../../services/exam.service';
@@ -49,7 +50,9 @@ export class StudentManagementComponent implements OnInit {
     private dataService: DataService,
     private authService: AuthService,
     private examService: ExamService,
-    private examCountService: ExamCountService
+    private examCountService: ExamCountService,
+    private titleService: Title,
+    private metaService: Meta
   ) {
     this.initializeUserInfo();
   }
@@ -59,6 +62,11 @@ export class StudentManagementComponent implements OnInit {
       window.location.href = '/dashboard';
       return;
     }
+
+    this.titleService.setTitle('Tolab Management');
+    this.metaService.updateTag({ name: 'description', content: 'Manage and monitor student performance in the exam platform. View detailed statistics, track progress, and handle student accounts.' });
+    this.metaService.updateTag({ name: 'keywords', content: 'tolab management, exam performance, student statistics, academic tracking, teacher dashboard' });
+
     this.loadStudents();
     this.loadExamsForCount();
   }
@@ -209,4 +217,5 @@ export class StudentManagementComponent implements OnInit {
   getPageNumbers(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
+
 } 

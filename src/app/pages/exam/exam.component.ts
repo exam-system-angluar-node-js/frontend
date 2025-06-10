@@ -13,6 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { CheatingDetectorService } from '../../services/cheating-detector.service';
 import { AuthService } from '../../services/auth.service';
+import { Title, Meta } from '@angular/platform-browser';
 
 interface Question {
   id: number;
@@ -68,8 +69,10 @@ export class ExamComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private cheatingDetectorService: CheatingDetectorService,
-    private authService: AuthService
-  ) {}
+    private authService: AuthService,
+    private titleService: Title,
+    private metaService: Meta
+  ) { }
 
   ngOnInit(): void {
     this.path = this.route.snapshot.paramMap.get('id');
@@ -91,6 +94,8 @@ export class ExamComponent implements OnInit, OnDestroy {
               this.setExamDuration();
               this.isLoading = false;
               this.error = false;
+              // Set dynamic title and meta tags based on exam data
+              this.updateMetaTags();
             } else {
               // If not found in shared data, fetch from API
               this.fetchExamById(examId);
@@ -114,6 +119,36 @@ export class ExamComponent implements OnInit, OnDestroy {
     this.answers = new Array(this.questions.length).fill(-1);
   }
 
+  private updateMetaTags(): void {
+    if (this.filterdExam) {
+      // Set dynamic title based on exam title
+      this.titleService.setTitle(`${this.filterdExam.title}`);
+
+      // Set meta description
+      this.metaService.updateTag({
+        name: 'description',
+        content: `${this.filterdExam.description || 'Take this exam'} - ${this.filterdExam.questionsCount} questions, ${this.examDurationMinutes} minutes duration.`
+      });
+
+      // Set meta keywords
+      this.metaService.updateTag({
+        name: 'keywords',
+        content: `exam, ${this.filterdExam.category}, ${this.filterdExam.title}, online exam, education platform, ${this.examDurationMinutes} minutes`
+      });
+    } else {
+      // Default meta tags if no exam data
+      this.titleService.setTitle('Exam');
+      this.metaService.updateTag({
+        name: 'description',
+        content: 'Take your exam on our platform. Complete questions within the time limit and submit your answers.'
+      });
+      this.metaService.updateTag({
+        name: 'keywords',
+        content: 'exam, online exam, education platform, student assessment'
+      });
+    }
+  }
+
   private fetchExamById(examId: number): void {
     console.log('Fetching exam by ID:', examId);
 
@@ -124,6 +159,8 @@ export class ExamComponent implements OnInit, OnDestroy {
         this.setExamDuration();
         this.isLoading = false;
         this.error = false;
+        // Update meta tags after fetching exam data
+        this.updateMetaTags();
       },
       error: (err: any) => {
         console.error('Error fetching exam by ID:', err);

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AdminService, RecentResult } from '../../../services/admin.service';
 import { ExamService } from '../../../services/exam.service';
 import { ExamCountService } from '../../../services/exam-count.service';
+import { Title, Meta } from '@angular/platform-browser';
 
 interface User {
   id: number;
@@ -40,19 +41,30 @@ export class AdminResultsComponent implements OnInit {
   loading: boolean = false;
   error: string | null = null;
 
-  // Pagination properties
   currentPage = 1;
-  itemsPerPage = 10; // You can adjust this
+  itemsPerPage = 10;
   totalPages = 0;
-  pagedFilteredResults: Result[] = []; // Data for the current page after filtering
+  pagedFilteredResults: Result[] = []; 
 
   constructor(
     private adminService: AdminService,
     private examService: ExamService,
-    private examCountService: ExamCountService
-  ) {}
+    private examCountService: ExamCountService,
+    private titleService: Title,
+    private metaService: Meta
+  ) { }
 
   ngOnInit(): void {
+    this.titleService.setTitle('Tolab Results');
+    this.metaService.updateTag({
+      name: 'description',
+      content: 'View and manage student exam results. Track performance, analyze scores, and export results. Filter and search through exam submissions.'
+    });
+    this.metaService.updateTag({
+      name: 'keywords',
+      content: 'tolab results, student performance, exam scores, result analysis, exam submissions, teacher dashboard'
+    });
+
     this.loadResults();
     this.loadExamsForCount();
   }
@@ -63,17 +75,14 @@ export class AdminResultsComponent implements OnInit {
 
     this.adminService.getRecentResults().subscribe({
       next: (response) => {
-        // Transform backend data to match frontend interface
         this.results = this.transformBackendData(response.data);
-        // this.filteredResults = this.results; // We'll apply filters and pagination after data load
-        this.applyFilters(); // Apply filters and pagination initially
+        this.applyFilters(); 
         this.loading = false;
       },
       error: (error) => {
         console.error('Error loading results:', error);
         this.error = 'Failed to load results. Please try again.';
         this.loading = false;
-        // Fallback to empty array on error
         this.results = [];
         this.filteredResults = [];
         this.pagedFilteredResults = [];
@@ -83,7 +92,6 @@ export class AdminResultsComponent implements OnInit {
   }
 
   private loadExamsForCount(): void {
-    // Fetch exams for the admin exam count in the sidebar
     this.examService.getAllExamsForTeacher().subscribe(exams => {
       this.examCountService.updateAdminExamCount(exams?.length ?? 0);
     });
@@ -93,13 +101,13 @@ export class AdminResultsComponent implements OnInit {
     return backendResults.map((result) => ({
       id: result.id,
       user: {
-        id: 0, // Backend doesn't provide user id in RecentResult
+        id: 0, 
         name: result.user.name,
-        email: '', // Backend doesn't provide email in RecentResult
+        email: '', 
         role: 'student',
       },
       exam: {
-        id: 0, // Backend doesn't provide exam id in RecentResult
+        id: 0, 
         title: result.exam.title,
         userId: 0,
       },
@@ -109,25 +117,21 @@ export class AdminResultsComponent implements OnInit {
     }));
   }
 
-  // Method to load results for a specific exam
   loadResultsForExam(examId: number): void {
     this.loading = true;
     this.error = null;
-    // Reset pagination to the first page when loading new exam results
     this.currentPage = 1;
 
     this.adminService.getRecentResults(examId).subscribe({
       next: (response) => {
         this.results = this.transformBackendData(response.data);
-        // this.filteredResults = this.results; // We'll apply filters and pagination after data load
-        this.applyFilters(); // Reapply current filters and pagination
+        this.applyFilters(); 
         this.loading = false;
       },
       error: (error) => {
         console.error('Error loading exam results:', error);
         this.error = 'Failed to load exam results. Please try again.';
         this.loading = false;
-        // Fallback to empty array on error
         this.results = [];
         this.filteredResults = [];
         this.pagedFilteredResults = [];
@@ -136,9 +140,7 @@ export class AdminResultsComponent implements OnInit {
     });
   }
 
-  // Method to refresh results
   refreshResults(): void {
-    // Reset pagination to the first page when refreshing
     this.currentPage = 1;
     this.loadResults();
     this.loadExamsForCount();
@@ -147,19 +149,18 @@ export class AdminResultsComponent implements OnInit {
   handleSearch(event: Event): void {
     const inputElement = event.target as HTMLInputElement;
     this.searchQuery = inputElement.value.toLowerCase();
-    this.currentPage = 1; // Reset page on filter change
+    this.currentPage = 1; 
     this.applyFilters();
   }
 
   handleStatusChange(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
     this.statusFilter = selectElement.value.toLowerCase();
-    this.currentPage = 1; // Reset page on filter change
+    this.currentPage = 1; 
     this.applyFilters();
   }
 
   applyFilters(): void {
-    // 1. Apply search and status filters to the full results
     this.filteredResults = this.results.filter((result) => {
       const matchesSearch =
         result.user.name.toLowerCase().includes(this.searchQuery) ||
@@ -174,21 +175,16 @@ export class AdminResultsComponent implements OnInit {
       return matchesSearch && matchesStatus;
     });
 
-    // 2. Calculate total pages based on filtered results
     this.totalPages = Math.ceil(this.filteredResults.length / this.itemsPerPage);
 
-    // 3. Ensure current page is valid (e.g., if filtering reduces total pages)
     if (this.currentPage > this.totalPages && this.totalPages > 0) {
-        this.currentPage = this.totalPages;
+      this.currentPage = this.totalPages;
     } else if (this.totalPages === 0) {
-        this.currentPage = 1; // Or 0, depending on how you want to show empty state
+      this.currentPage = 1; 
     }
-
-    // 4. Paginate the filtered results
     this.paginateFilteredResults();
   }
 
-  // Pagination methods
   paginateFilteredResults(): void {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     const endIndex = startIndex + this.itemsPerPage;
@@ -210,7 +206,6 @@ export class AdminResultsComponent implements OnInit {
     this.goToPage(this.currentPage - 1);
   }
 
-  // Helper for grade
   getGrade(score: number | null): string {
     if (score === null || score === undefined) return '-';
     if (score >= 90) return 'A+';
@@ -221,7 +216,6 @@ export class AdminResultsComponent implements OnInit {
     return 'F';
   }
 
-  // Helper for status
   getStatus(result: Result): { label: string; color: string } {
     if (result.passed === null) return { label: 'Pending', color: 'zinc' };
     if (result.passed && result.score !== null && result.score >= 90)
@@ -233,7 +227,6 @@ export class AdminResultsComponent implements OnInit {
     return { label: 'Average', color: 'yellow' };
   }
 
-  // Method to export results
   exportResults(): void {
     console.log('Exporting results...', this.filteredResults);
 
@@ -242,22 +235,21 @@ export class AdminResultsComponent implements OnInit {
       return;
     }
 
-    const replacer = (key: string, value: any) => (value === null ? '' : value); // Handle null values
+    const replacer = (key: string, value: any) => (value === null ? '' : value); 
     const header = ['Student Name', 'Subject', 'Exam Date', 'Score', 'Grade', 'Status'];
     const csv = this.filteredResults.map(result => header.map(fieldName => {
-        // Map header names to result object properties
-        switch (fieldName) {
-            case 'Student Name': return JSON.stringify(result.user.name, replacer);
-            case 'Subject': return JSON.stringify(result.exam.title, replacer);
-            case 'Exam Date': return JSON.stringify(this.formatDate(result.createdAt), replacer); // Use formatted date
-            case 'Score': return JSON.stringify(result.score !== null ? `${result.score}/100` : '-', replacer); // Format score
-            case 'Grade': return JSON.stringify(this.getGrade(result.score), replacer); // Use getGrade helper
-            case 'Status': return JSON.stringify(this.getStatus(result).label, replacer); // Use getStatus helper
-            default: return '';
-        }
+      switch (fieldName) {
+        case 'Student Name': return JSON.stringify(result.user.name, replacer);
+        case 'Subject': return JSON.stringify(result.exam.title, replacer);
+        case 'Exam Date': return JSON.stringify(this.formatDate(result.createdAt), replacer); 
+        case 'Score': return JSON.stringify(result.score !== null ? `${result.score}/100` : '-', replacer); 
+        case 'Grade': return JSON.stringify(this.getGrade(result.score), replacer); 
+        case 'Status': return JSON.stringify(this.getStatus(result).label, replacer); 
+        default: return '';
+      }
     }).join(','));
 
-    csv.unshift(header.join(',')); // Add header row
+    csv.unshift(header.join(',')); 
     const csvString = csv.join('\r\n');
 
     const a = document.createElement('a');
@@ -271,12 +263,12 @@ export class AdminResultsComponent implements OnInit {
     URL.revokeObjectURL(url);
   }
 
-  // Method to format date for display
   formatDate(dateString: string): string {
     try {
       return new Date(dateString).toLocaleDateString();
     } catch {
-      return dateString; // Return original string if parsing fails
+      return dateString; 
     }
   }
+
 }

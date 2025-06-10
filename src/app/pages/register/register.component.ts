@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -8,6 +8,7 @@ import {
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { Title, Meta } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-register',
@@ -15,13 +16,25 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './register.component.html',
   styleUrl: './register.component.css',
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit {
   showAlert = false;
   alertMessage = '';
   alertType = 'error';
   isLoading = false;
 
-  constructor(private router: Router, private authService: AuthService) { }
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private titleService: Title,
+    private metaService: Meta
+  ) { }
+
+  ngOnInit() {
+    this.titleService.setTitle('TolabExams | Sign Up');
+    this.metaService.updateTag({ name: 'description', content: 'Create your account on our exam platform. Register as a student or teacher to access educational resources and exams.' });
+    this.metaService.updateTag({ name: 'keywords', content: 'register, sign up,tolabexams ,exam platform, student registration, teacher registration, education platform' });
+  }
+
   registerForm = new FormGroup({
     username: new FormControl('', [
       Validators.required,

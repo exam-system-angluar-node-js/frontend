@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Title, Meta } from '@angular/platform-browser';
 import { CheatingReportService, CheatingReport } from '../../../services/cheating-report.service';
 import { ExamCountService } from '../../../services/exam-count.service';
 import { ExamService } from '../../../services/exam.service';
@@ -24,28 +25,31 @@ export class CheatingReportsComponent implements OnInit {
   statusFilter: string = 'all';
   filteredReports: EnhancedCheatingReport[] = [];
   cheatingReports: EnhancedCheatingReport[] = [];
-  pagedReports: EnhancedCheatingReport[] = []; // Data for the current page
+  pagedReports: EnhancedCheatingReport[] = []; 
   isLoading = true;
   errorMessage: string | null = null;
-
-  // Pagination properties
   currentPage = 1;
-  itemsPerPage = 10; // You can adjust this number
+  itemsPerPage = 10; 
   totalPages = 0;
 
   constructor(
     private cheatingReportService: CheatingReportService,
     private dataService: DataService,
     private examCountService: ExamCountService,
-    private examService: ExamService
+    private examService: ExamService,
+    private titleService: Title,
+    private metaService: Meta
   ) { }
 
   ngOnInit(): void {
+    this.titleService.setTitle('Cheating Logs');
+    this.metaService.updateTag({ name: 'description', content: 'Monitor and manage cheating logs in the exam platform. View detailed reports of suspicious activities during exams.' });
+    this.metaService.updateTag({ name: 'keywords', content: 'cheating logs, exam monitoring, suspicious activities, exam security, teacher dashboard' });
+
     this.loadReports();
     this.loadExamsForCount();
   }
   private loadExamsForCount(): void {
-    // Fetch exams for the admin exam count in the sidebar
     this.examService.getAllExamsForTeacher().subscribe(exams => {
       this.examCountService.updateAdminExamCount(exams?.length ?? 0);
     });
@@ -125,7 +129,6 @@ export class CheatingReportsComponent implements OnInit {
             studentName: students.find(s => s.id === report.studentId)?.name || (report.studentId ? `Unknown Student (ID: ${report.studentId})` : 'Unknown Student'),
             examTitle: exams.find(e => e.id === report.examId)?.title || (report.examId ? `Unknown Exam (ID: ${report.examId})` : 'Unknown Exam')
           }));
-          // Initialize filtered reports with all reports
           this.filteredReports = [...this.cheatingReports];
           console.log('Final processed logs for display:', this.cheatingReports);
         } else {
@@ -133,12 +136,11 @@ export class CheatingReportsComponent implements OnInit {
           this.cheatingReports = [];
           this.filteredReports = [];
         }
-        // Only set isLoading to false here if the initial fetch did NOT error out
         if (!this.errorMessage) {
           this.isLoading = false;
         }
-        this.calculateTotalPages(); // Calculate total pages after data is loaded
-        this.paginateReports(); // Paginate the initial data
+        this.calculateTotalPages(); 
+        this.paginateReports(); 
       },
       error: (err) => {
         console.error('Logs subscription error:', err);
@@ -154,7 +156,6 @@ export class CheatingReportsComponent implements OnInit {
     });
   }
 
-  // Pagination methods
   calculateTotalPages(): void {
     this.totalPages = Math.ceil(this.cheatingReports.length / this.itemsPerPage);
   }
@@ -162,19 +163,18 @@ export class CheatingReportsComponent implements OnInit {
   handleSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.searchQuery = input.value.toLowerCase();
-    this.currentPage = 1; // Reset to first page when searching
+    this.currentPage = 1; 
     this.applyFilters();
   }
 
   handleStatusChange(event: Event): void {
     const select = event.target as HTMLSelectElement;
     this.statusFilter = select.value;
-    this.currentPage = 1; // Reset to first page when filtering
+    this.currentPage = 1; 
     this.applyFilters();
   }
 
   applyFilters(): void {
-    // Apply search and status filters to the full results
     this.filteredReports = this.cheatingReports.filter((report) => {
       const matchesSearch = this.searchQuery === '' ||
         (report.studentName?.toLowerCase().includes(this.searchQuery) ||
@@ -188,17 +188,14 @@ export class CheatingReportsComponent implements OnInit {
       return matchesSearch && matchesStatus;
     });
 
-    // Calculate total pages based on filtered results
     this.totalPages = Math.ceil(this.filteredReports.length / this.itemsPerPage);
 
-    // Ensure current page is valid
     if (this.currentPage > this.totalPages && this.totalPages > 0) {
       this.currentPage = this.totalPages;
     } else if (this.totalPages === 0) {
       this.currentPage = 1;
     }
 
-    // Paginate the filtered results
     this.paginateReports();
   }
 
@@ -223,17 +220,15 @@ export class CheatingReportsComponent implements OnInit {
     this.goToPage(this.currentPage - 1);
   }
 
-  // CSV Export method
   exportToCsv(): void {
     if (this.cheatingReports.length === 0) {
       console.warn('No logs to export.');
       return;
     }
 
-    const replacer = (key: string, value: any) => (value === null ? '' : value); // Handle null values
+    const replacer = (key: string, value: any) => (value === null ? '' : value); 
     const header = ['Report ID', 'Student Name', 'Exam Title', 'Timestamp', 'Cheating Type'];
     const csv = this.cheatingReports.map(report => header.map(fieldName => {
-      // Map header names to report object properties
       switch (fieldName) {
         case 'Report ID': return JSON.stringify(report.id, replacer);
         case 'Student Name': return JSON.stringify(report.studentName || '', replacer);
@@ -244,7 +239,7 @@ export class CheatingReportsComponent implements OnInit {
       }
     }).join(','));
 
-    csv.unshift(header.join(',')); // Add header row
+    csv.unshift(header.join(','));
     const csvString = csv.join('\r\n');
 
     const a = document.createElement('a');

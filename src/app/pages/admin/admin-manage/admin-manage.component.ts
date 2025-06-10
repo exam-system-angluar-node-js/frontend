@@ -5,6 +5,7 @@ import { ExamService } from '../../../services/exam.service';
 import { ToastrService } from 'ngx-toastr';
 import { ConfirmModalComponent } from '../../../shared/components/confirm-modal/confirm-modal.component';
 import { ExamCountService } from '../../../services/exam-count.service';
+import { Title, Meta } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-admin-manage',
@@ -22,13 +23,26 @@ export class AdminManageComponent implements OnInit {
   examToDelete: number | null = null;
   isDeleting = false;
   isLoading = false;
+
   constructor(
     private examService: ExamService,
     private toastr: ToastrService,
-    private examCountService: ExamCountService
-  ) {}
+    private examCountService: ExamCountService,
+    private titleService: Title,
+    private metaService: Meta
+  ) { }
 
   ngOnInit(): void {
+    this.titleService.setTitle('Manage Exams');
+    this.metaService.updateTag({
+      name: 'description',
+      content: 'Manage and organize your exams. Create, edit, delete, and filter exams by category. Monitor exam status and maintain your exam library.'
+    });
+    this.metaService.updateTag({
+      name: 'keywords',
+      content: 'exam management, create exam, edit exam, delete exam, exam categories, exam library, teacher controls'
+    });
+
     this.isLoading = true;
     this.examService.getAllExamsForTeacher().subscribe((exams) => {
       this.exams = exams ?? [];
@@ -36,8 +50,10 @@ export class AdminManageComponent implements OnInit {
       this.examCountService.updateAdminExamCount(this.exams.length);
       console.log('filtered', this.filteredExams);
       this.isLoading = false;
+
     });
   }
+
 
   handleDelete(examId: number): void {
     this.examToDelete = examId;
@@ -59,6 +75,7 @@ export class AdminManageComponent implements OnInit {
           );
           this.examCountService.updateAdminExamCount(this.exams.length);
           this.toastr.success(`${exam?.title} has been deleted`, 'Successfully Deleted');
+
         },
         error: (error) => {
           console.error('Error deleting exam:', error);

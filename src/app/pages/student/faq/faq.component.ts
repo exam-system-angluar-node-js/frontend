@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { Title, Meta } from '@angular/platform-browser';
 
 interface FAQItem {
   question: string;
@@ -14,7 +15,7 @@ interface FAQItem {
   imports: [CommonModule, RouterModule],
   templateUrl: './faq.component.html',
 })
-export class FAQComponent {
+export class FAQComponent implements OnInit {
   faqs: FAQItem[] = [
     {
       category: 'Getting Started',
@@ -60,6 +61,46 @@ export class FAQComponent {
 
   categories: string[] = ['Getting Started', 'Exam Rules', 'Results & Grades', 'Technical Issues'];
   selectedCategory: string = 'Getting Started';
+
+  constructor(
+    private titleService: Title,
+    private metaService: Meta
+  ) {}
+
+  ngOnInit(): void {
+    this.titleService.setTitle('Help Center');
+    this.metaService.updateTag({ 
+      name: 'description', 
+      content: 'Find answers to common questions about taking exams, exam rules, results, and technical support. Get help with getting started, exam procedures, and troubleshooting.'
+    });
+    this.metaService.updateTag({ 
+      name: 'keywords', 
+      content: 'FAQ, frequently asked questions, exam help, exam rules, exam results, technical support, exam platform, student guide'
+    });
+
+  }
+
+
+
+  private getCategoryDescription(category: string): string {
+    const descriptions: { [key: string]: string } = {
+      'Getting Started': 'Learn how to get started with the exam platform.',
+      'Exam Rules': 'Understand the rules and guidelines for taking exams.',
+      'Results & Grades': 'Get information about exam results and grading.',
+      'Technical Issues': 'Find solutions to common technical problems.'
+    };
+    return descriptions[category] || 'Find answers to your questions.';
+  }
+
+  private getCategoryKeywords(category: string): string {
+    const keywords: { [key: string]: string } = {
+      'Getting Started': 'beginner guide, first exam, exam setup',
+      'Exam Rules': 'exam guidelines, exam policies, exam requirements',
+      'Results & Grades': 'exam scores, grade calculation, result analysis',
+      'Technical Issues': 'technical support, troubleshooting, browser compatibility'
+    };
+    return keywords[category] || 'exam platform';
+  }
 
   getFilteredFAQs(): FAQItem[] {
     return this.faqs.filter(faq => faq.category === this.selectedCategory);

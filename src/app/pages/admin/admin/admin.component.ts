@@ -1,4 +1,3 @@
-// admin.component.ts - Merged version with service integration and improved functionality
 import { Component, AfterViewInit, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
 import { FormsModule } from '@angular/forms';
@@ -14,24 +13,22 @@ import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { ExamService } from '../../../services/exam.service';
 import { ExamCountService } from '../../../services/exam-count.service';
 import { Router, RouterLink } from '@angular/router';
+import { Title, Meta } from '@angular/platform-browser';
 
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [FormsModule, CommonModule,RouterLink],
+  imports: [FormsModule, CommonModule, RouterLink],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css'],
 })
 export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
-  // User information
   currentUser: any = null;
   teacherName: string = 'Admin';
-
-  // Dashboard stats
   dashboardStats: DashboardStats = {
     totalStudents: 0,
     totalExams: 0,
@@ -39,17 +36,14 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     overallPassRate: 0,
   };
 
-  // Exam results data
   examResults: ExamResult[] = [];
   recentResults: RecentResult[] = [];
 
-  // UI state
   loading = true;
   error: string | null = null;
   noResultsData = false;
   noActivityData = false;
 
-  // Chart instances
   private resultsChart: Chart | null = null;
   private activityChart: Chart | null = null;
   private dataLoaded = false;
@@ -60,19 +54,29 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     private examService: ExamService,
     private examCountService: ExamCountService,
     private cdr: ChangeDetectorRef,
-    private router: Router
+    private router: Router,
+    private titleService: Title,
+    private metaService: Meta
   ) {
-    // Initialize user information
     this.initializeUserInfo();
   }
 
   ngOnInit(): void {
+    this.titleService.setTitle(`Teacher Dashboard`);
+    this.metaService.updateTag({
+      name: 'description',
+      content: 'Teacher dashboard for managing exams, monitoring student performance, and tracking overall platform statistics. View detailed analytics and recent exam results.'
+    });
+    this.metaService.updateTag({
+      name: 'keywords',
+      content: 'teacher dashboard, exam management, student performance, platform statistics, exam analytics, teacher controls'
+    });
+
     this.loadDashboardData();
     this.loadExamsForCount();
   }
 
   ngAfterViewInit(): void {
-    // Do nothing here; charts will be initialized after data and view are ready
   }
 
   ngOnDestroy(): void {
@@ -91,7 +95,6 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private loadExamsForCount(): void {
-    // Fetch exams for the admin exam count in the sidebar
     this.examService.getAllExamsForTeacher().subscribe(exams => {
       this.examCountService.updateAdminExamCount(exams?.length ?? 0);
     });
@@ -129,7 +132,6 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     this.error = null;
     this.dataLoaded = false;
 
-    // Load all data simultaneously
     forkJoin({
       stats: this.adminService.getDashboardStats(currentUser.id),
       examResults: this.adminService.getExamResults(),
@@ -157,10 +159,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initializeCharts(): void {
-    // Destroy previous chart instances
     this.destroyCharts();
-
-    // Check if canvas elements exist
     const resultsCanvas = document.getElementById('resultsChart') as HTMLCanvasElement;
     const activityCanvas = document.getElementById('activityChart') as HTMLCanvasElement;
 
@@ -169,33 +168,26 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    // Ensure data is loaded before initializing charts
     if (!this.dataLoaded || this.loading) {
       return;
     }
-
-    // Check if there are any students who have taken exams
     const hasStudentActivity = this.dashboardStats.totalStudents > 0 && this.recentResults.length > 0;
 
-    // Prepare data for charts
     const examTitles = this.examResults.map(exam => exam.exam.title);
     const totalAttempts = this.examResults.map(exam => exam.totalAttempts);
     const overallPassRate = this.dashboardStats?.overallPassRate || 0;
     const overallFailRate = 100 - overallPassRate;
 
-    // Set no data state for both charts if no student activity
     if (!hasStudentActivity) {
       this.noResultsData = true;
       this.noActivityData = true;
       return;
     }
 
-    // Check if there's data for results chart
     if (overallPassRate === 0 && overallFailRate === 0) {
       this.noResultsData = true;
     } else {
       this.noResultsData = false;
-      // Create Overall Pass Rate Chart (Pie Chart)
       this.resultsChart = new Chart(resultsCanvas, {
         type: 'pie',
         data: {
@@ -203,7 +195,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
           datasets: [
             {
               data: [overallPassRate, overallFailRate],
-              backgroundColor: ['#4CAF50', '#F44336'], // Green and Red
+              backgroundColor: ['#4CAF50', '#F44336'],
               borderColor: ['#ffffff', '#ffffff'],
               borderWidth: 2,
             },
@@ -220,12 +212,10 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
       });
     }
 
-    // Check if there's data for activity chart
     if (examTitles.length === 0 || totalAttempts.every(attempt => attempt === 0)) {
       this.noActivityData = true;
     } else {
       this.noActivityData = false;
-      // Create Exam Attempts Chart (Bar Chart)
       this.activityChart = new Chart(activityCanvas, {
         type: 'bar',
         data: {
@@ -234,7 +224,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
             {
               label: 'Total Attempts',
               data: totalAttempts,
-              backgroundColor: '#3F51B5', // Indigo
+              backgroundColor: '#3F51B5',
               borderColor: '#3F51B5',
               borderWidth: 1,
             },
