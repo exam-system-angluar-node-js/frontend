@@ -19,6 +19,7 @@ export class AdminManageComponent implements OnInit {
   filteredExams: any[] = [];
   category: string = 'all';
   exams: any[] = [];
+  uniqueCategories: string[] = [];
   showDeleteModal = false;
   examToDelete: number | null = null;
   isDeleting = false;
@@ -47,13 +48,17 @@ export class AdminManageComponent implements OnInit {
     this.examService.getAllExamsForTeacher().subscribe((exams) => {
       this.exams = exams ?? [];
       this.filteredExams = exams ?? [];
+      this.uniqueCategories = this.extractUniqueCategories(this.exams);
       this.examCountService.updateAdminExamCount(this.exams.length);
       console.log('filtered', this.filteredExams);
       this.isLoading = false;
-
     });
   }
 
+  private extractUniqueCategories(exams: any[]): string[] {
+    const categories = new Set(exams.map(exam => exam.category).filter(Boolean));
+    return Array.from(categories).sort();
+  }
 
   handleDelete(examId: number): void {
     this.examToDelete = examId;
@@ -73,9 +78,9 @@ export class AdminManageComponent implements OnInit {
           this.filteredExams = this.filteredExams.filter(
             (exam) => exam.id !== this.examToDelete
           );
+          this.uniqueCategories = this.extractUniqueCategories(this.exams);
           this.examCountService.updateAdminExamCount(this.exams.length);
           this.toastr.success(`${exam?.title} has been deleted`, 'Successfully Deleted');
-
         },
         error: (error) => {
           console.error('Error deleting exam:', error);
