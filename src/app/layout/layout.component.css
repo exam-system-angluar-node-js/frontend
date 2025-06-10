@@ -31,3 +31,24 @@
         opacity: 1;
     }
 }
+
+/* Prevent overflow on small screens */
+@media (max-width: 640px) {
+    .min-h-screen {
+        overflow-x: hidden;
+    }
+}
+
+/* Ensure content doesn't overflow on any screen size */
+:host {
+    display: block;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* Smooth transitions for sidebar */
+.transition-all {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+}
