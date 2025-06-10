@@ -78,20 +78,38 @@ export class SettingsComponent {
 
   async saveChanges(): Promise<void> {
     try {
+      // Validate username
+      if (!this.userDetails.name || this.userDetails.name.trim().length < 3) {
+        this.toastr.error('Username must be at least 3 characters long');
+        return;
+      }
+
+      // Validate username format (only letters, spaces, and hyphens)
+      const nameRegex = /^[A-Za-z]+(?:[ '\-][A-Za-z]+)*$/;
+      if (!nameRegex.test(this.userDetails.name)) {
+        this.toastr.error('Username can only contain letters, spaces, and hyphens');
+        return;
+      }
+
+      this.isUploading = true;
       let imageUrl = this.userDetails.avatar;
+      
       if (this.selectedFile) {
-        this.isUploading = true;
         const result = await this.fileUploadService.uploadImage(this.selectedFile).toPromise();
         if (result && result.imageUrl) {
           imageUrl = result.imageUrl;
         }
-        this.isUploading = false;
       }
 
-      // Update the user profile with the new imageUrl
-      const res = await this.authService.updateProfile({ avatar: imageUrl }).toPromise();
+      // Update the user profile with both imageUrl and name
+      const res = await this.authService.updateProfile({ 
+        avatar: imageUrl,
+        name: this.userDetails.name 
+      }).toPromise();
+      
       if (res && res.user) {
         this.userDetails = res.user;
+        this.currentUser = res.user;
       }
       this.avatarPreview = null;
       this.selectedFile = null;
@@ -106,9 +124,10 @@ export class SettingsComponent {
       (document.getElementById('avatar-upload') as HTMLInputElement).value = '';
 
     } catch (error) {
-      this.isUploading = false;
       this.toastr.error('Failed to update profile');
       console.error('Error updating profile:', error);
+    } finally {
+      this.isUploading = false;
     }
   }
 
