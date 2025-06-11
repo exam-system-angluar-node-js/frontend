@@ -15,6 +15,7 @@ export class ExamsComponent implements OnInit, OnDestroy {
   category: string = 'all';
   filteredExams: ExamData[] = [];
   exams: ExamData[] = [];
+  uniqueCategories: string[] = [];
   loading: boolean = true;
   error: string = '';
   private destroy$ = new Subject<void>();
@@ -72,6 +73,11 @@ export class ExamsComponent implements OnInit, OnDestroy {
       });
   }
 
+  private extractUniqueCategories(exams: ExamData[]): string[] {
+    const categories = new Set(exams.map(exam => exam.category));
+    return Array.from(categories).sort();
+  }
+
   loadExams(): void {
     this.loading = true;
     this.error = '';
@@ -88,6 +94,7 @@ export class ExamsComponent implements OnInit, OnDestroy {
           console.log('Taken exam titles:', Array.from(this.takenExamTitles));
           this.exams = exams;
           this.filteredExams = exams;
+          this.uniqueCategories = this.extractUniqueCategories(exams);
           this.loading = false;
           this.dataService.changeData(exams);
           console.log('=== TRANSFORMED EXAMS ===');
@@ -104,6 +111,7 @@ export class ExamsComponent implements OnInit, OnDestroy {
           this.loading = false;
           this.exams = [];
           this.filteredExams = [];
+          this.uniqueCategories = [];
         },
       });
   }

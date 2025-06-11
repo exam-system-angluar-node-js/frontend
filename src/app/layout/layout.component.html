@@ -7,7 +7,7 @@
 </div>
 }
 
-<div class="min-h-screen bg-gray-50 dark:bg-zinc-900">
+<div class="min-h-screen bg-gray-50 dark:bg-zinc-900 mt-4">
   <app-navbar [isSidebarOpen]="togglerState" (toggleState)="onToggleState($event)" [userDetails]="currentUser"
     [logout]="logout.bind(this)"></app-navbar>
   <app-sidebar [isOpen]="togglerState" [userDetails]="currentUser" [queryPath]="currentUser?.role"
